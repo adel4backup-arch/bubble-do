@@ -367,7 +367,7 @@
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
 <script type="text/plain" id="app-source">
-const { useState, useEffect, useRef, useMemo, useCallback } = React;
+const { useState, useEffect, useRef, useMemo } = React;
 
 const STORAGE_KEY = 'davayer-davayer-tasks-v1';
 const THEME_KEY = 'davayer-davayer-theme';
@@ -460,8 +460,6 @@ const STRINGS = {
   },
 };
 
-const OVERDUE_WINDOW_DAYS = 21; // very overdue -> pinned to the top
-const FUTURE_WINDOW_DAYS = 21;  // far in the future -> pinned to the bottom
 const MIN_RADIUS = 52;
 const MAX_RADIUS = 124;
 
@@ -521,33 +519,6 @@ function formatDuration(totalHours, lang) {
   if (h > 0 && m > 0) return `${h} س ${m} د`;
   if (h > 0) return `${h} س`;
   return `${m} د`;
-}
-
-function hexToRgba(hex, alpha) {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function soapBubbleStyle(hex) {
-  return {
-    background: [
-      'radial-gradient(circle at 28% 24%, rgba(255,255,255,0.95), rgba(255,255,255,0.25) 16%, rgba(255,255,255,0) 32%)',
-      `radial-gradient(circle at 70% 78%, ${hexToRgba(hex, 0.4)}, ${hexToRgba(hex, 0.14)} 55%, ${hexToRgba(hex, 0.06)} 100%)`,
-      'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12), rgba(255,255,255,0) 70%)',
-    ].join(', '),
-    border: '1px solid rgba(255,255,255,0.6)',
-    boxShadow: [
-      'inset 0 0 18px rgba(255,255,255,0.35)',
-      'inset 6px 8px 14px rgba(255,255,255,0.25)',
-      `inset -8px -10px 18px ${hexToRgba(hex, 0.18)}`,
-      '0 6px 18px rgba(0,0,0,0.12)',
-      `0 0 20px ${hexToRgba(hex, 0.22)}`,
-    ].join(', '),
-    backdropFilter: 'blur(1.5px)',
-  };
 }
 
 function isOverdue(task) {
@@ -622,13 +593,20 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
     };
   }, [tasks]);
 
-  const yTarget = useCallback((task, height) => {
+  // Strict ordering by due date: oldest date always ends up above a newer
+  // one, regardless of how close/far apart the actual dates are.
+  const yTargetById = useMemo(() => {
     const topPad = 90, bottomPad = 70;
-    const du = daysUntil(task.dueDate);
-    const norm = (du + OVERDUE_WINDOW_DAYS) / (OVERDUE_WINDOW_DAYS + FUTURE_WINDOW_DAYS);
-    const clamped = Math.min(1, Math.max(0, norm));
-    return topPad + clamped * Math.max(10, height - topPad - bottomPad);
-  }, []);
+    const height = size.h;
+    const sorted = [...tasks].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    const n = sorted.length;
+    const map = new Map();
+    sorted.forEach((t, i) => {
+      const frac = n <= 1 ? 0.5 : i / (n - 1);
+      map.set(t.id, topPad + frac * Math.max(10, height - topPad - bottomPad));
+    });
+    return map;
+  }, [tasks, size.h]);
 
   // (re)build simulation whenever the task list, or canvas size, changes
   useEffect(() => {
@@ -638,7 +616,7 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
     const nodes = tasks.map(t => {
       const prev = prevById.get(t.id);
       const r = radiusScale(t.estimatedHours);
-      const newTy = yTarget(t, h);
+      const newTy = yTargetById.get(t.id);
       if (prev) {
         prev.r = r;
         prev.task = t;
@@ -701,7 +679,7 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
     simRef.current = sim;
     return () => sim.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks, size, radiusScale, yTarget]);
+  }, [tasks, size, radiusScale, yTargetById]);
 
   return (
     <div className="field-wrap" ref={containerRef}>
@@ -725,7 +703,11 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
               border: '3px dashed #22c55e',
               boxShadow: '0 0 0 3px rgba(255,255,255,0.06)',
             }
-          : soapBubbleStyle(meta.color);
+          : {
+              background: meta.color,
+              border: '1px solid rgba(255,255,255,0.35)',
+              boxShadow: `0 0 26px 2px ${meta.color}66`,
+            };
         return (
           <div
             key={t.id}
