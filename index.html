@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>bubble-do</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet" />
 <style>
@@ -85,15 +86,66 @@
     flex-wrap: wrap;
   }
   .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-dot {
-    width: 14px; height: 14px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #a9c1ff, #5a78ff 60%, #2c47c9);
-    box-shadow: 0 0 14px 2px rgba(90, 120, 255, 0.7);
-  }
+  .brand-logo { width: 34px; height: 34px; flex-shrink: 0; filter: drop-shadow(0 2px 8px rgba(0,0,0,.35)); }
   .brand h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: .3px; }
   .brand span { font-size: 12px; color: var(--text-dim); display:block; margin-top:2px; }
 
   .toolbar-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+  .sort-tabs {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 22px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--panel-border);
+    backdrop-filter: blur(14px);
+    z-index: 15;
+  }
+  .sort-tab {
+    display: flex; align-items: center; gap: 6px;
+    background: transparent; border: 1px solid transparent;
+    border-radius: 10px; padding: 7px 14px;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--text-dim); cursor: pointer;
+  }
+  .sort-tab svg { width: 15px; height: 15px; }
+  .sort-tab:hover { border-color: var(--panel-border); color: var(--text); }
+  .sort-tab.active {
+    background: var(--surface-focus); border-color: var(--accent); color: var(--accent);
+  }
+  .sort-tab-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 800;
+  }
+  .reset-tab { margin-inline-start: auto; }
+
+  .stats-panel {
+    position: absolute;
+    inset-inline-start: 16px;
+    bottom: 16px;
+    z-index: 10;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    backdrop-filter: blur(14px);
+    min-width: 180px;
+    box-shadow: 0 20px 40px -20px rgba(0,0,0,.4);
+  }
+  .stats-title {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 800; color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .stats-title svg { width: 15px; height: 15px; }
+  .stats-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12.5px; color: var(--text-dim);
+    padding: 4px 0;
+  }
+  .stats-value { color: var(--text); font-weight: 800; }
+  .stats-value small { color: var(--text-dim); font-weight: 600; font-size: 10.5px; }
 
   .toggle {
     display: flex; align-items: center; gap: 8px;
@@ -214,6 +266,8 @@
     border: 1px solid var(--accent);
     white-space: nowrap;
   }
+  .tomorrow-line { border-top-color: var(--text-dim); opacity: .7; }
+  .tomorrow-line-label { color: var(--text-dim); border-color: var(--text-dim); }
 
   .bubble {
     position: absolute;
@@ -227,13 +281,15 @@
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     text-align: center;
-    cursor: pointer;
+    cursor: grab;
+    touch-action: none;
     color: #101426;
     font-weight: 700;
     padding: 6px;
     user-select: none;
     transition: box-shadow .2s ease, filter .2s ease;
   }
+  .bubble-inner:active { cursor: grabbing; }
   .bubble-inner:hover { filter: brightness(1.08); }
   .bubble-label {
     display: flex;
@@ -403,6 +459,8 @@ const { useState, useEffect, useRef, useMemo } = React;
 const STORAGE_KEY = 'davayer-davayer-tasks-v1';
 const THEME_KEY = 'davayer-davayer-theme';
 const LANG_KEY = 'davayer-davayer-lang';
+const MANUAL_POS_KEY = 'davayer-davayer-manual-pos';
+const COMPLETIONS_KEY = 'davayer-davayer-completions';
 
 const PRIORITY = {
   normal:        { color: '#22c55e' },
@@ -430,6 +488,17 @@ const STRINGS = {
     axisOverdue: '⬆ متأخرة / تاريخها قديم',
     axisFuture: '⬇ لسه بدري عليها',
     todayLabel: 'النهاردة',
+    afterTodayLabel: 'اللي جاي بعد النهاردة',
+    sortByDate: 'التاريخ',
+    sortByDuration: 'المدة',
+    sortByPriority: 'الأولوية',
+    resetLayout: 'ريست الترتيب',
+    statsTitle: 'إنجازك',
+    statsToday: 'النهاردة',
+    statsWeek: 'الأسبوع ده',
+    statsMonth: 'الشهر ده',
+    statsAllTime: 'من البداية',
+    statsUnit: 'نقطة',
     fieldName: 'اسم المهمة',
     fieldNamePlaceholder: 'مثلاً: تجهيز عرض العميل',
     fieldDescription: 'الوصف',
@@ -469,6 +538,17 @@ const STRINGS = {
     axisOverdue: '⬆ Overdue / old date',
     axisFuture: '⬇ Still coming up',
     todayLabel: 'Today',
+    afterTodayLabel: 'Coming up after today',
+    sortByDate: 'Date',
+    sortByDuration: 'Duration',
+    sortByPriority: 'Priority',
+    resetLayout: 'Reset layout',
+    statsTitle: 'Your progress',
+    statsToday: 'Today',
+    statsWeek: 'This week',
+    statsMonth: 'This month',
+    statsAllTime: 'All time',
+    statsUnit: 'pts',
     fieldName: 'Task name',
     fieldNamePlaceholder: 'e.g. Prepare client presentation',
     fieldDescription: 'Description',
@@ -510,6 +590,30 @@ function loadTasks() {
 }
 function saveTasks(tasks) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+function loadManualPositions() {
+  try {
+    const raw = localStorage.getItem(MANUAL_POS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveManualPositions(positions) {
+  localStorage.setItem(MANUAL_POS_KEY, JSON.stringify(positions));
+}
+
+function loadCompletions() {
+  try {
+    const raw = localStorage.getItem(COMPLETIONS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+function saveCompletions(completions) {
+  localStorage.setItem(COMPLETIONS_KEY, JSON.stringify(completions));
 }
 
 function daysUntil(dueDateIso) {
@@ -568,13 +672,16 @@ function isOverdue(task) {
 const CLICK_DELAY_MS = 260;
 const POP_DURATION_MS = 380;
 
-function BubbleField({ tasks, onSelect, onPop, lang }) {
+const DRAG_THRESHOLD_PX = 6;
+
+function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, manualPositions, onManualMove }) {
   const s = STRINGS[lang];
   const containerRef = useRef(null);
   const nodesRef = useRef([]);
   const simRef = useRef(null);
   const elRefs = useRef({});
   const clickTimerRef = useRef(null);
+  const dragStateRef = useRef(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const [poppingIds, setPoppingIds] = useState(() => new Set());
 
@@ -602,6 +709,57 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
         onSelect(id);
       }, CLICK_DELAY_MS);
       clickTimerRef.current = { id, timer };
+    }
+  }
+
+  function handlePointerDown(e, id) {
+    const node = nodesRef.current.find(n => n.id === id);
+    if (!node) return;
+    dragStateRef.current = {
+      id,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      startNodeX: node.x,
+      startNodeY: node.y,
+      dragging: false,
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e, id) {
+    const ds = dragStateRef.current;
+    if (!ds || ds.id !== id) return;
+    const dx = e.clientX - ds.startClientX;
+    const dy = e.clientY - ds.startClientY;
+    if (!ds.dragging && Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) {
+      ds.dragging = true;
+      if (clickTimerRef.current) { clearTimeout(clickTimerRef.current.timer); clickTimerRef.current = null; }
+      if (simRef.current) simRef.current.alphaTarget(0.3).restart();
+    }
+    if (ds.dragging) {
+      const node = nodesRef.current.find(n => n.id === id);
+      if (node) {
+        node.fx = ds.startNodeX + dx;
+        node.fy = ds.startNodeY + dy;
+      }
+    }
+  }
+
+  function handlePointerUp(e, id) {
+    const ds = dragStateRef.current;
+    dragStateRef.current = null;
+    if (!ds || ds.id !== id) return;
+    if (ds.dragging) {
+      const node = nodesRef.current.find(n => n.id === id);
+      if (simRef.current) simRef.current.alphaTarget(0.05);
+      if (node) {
+        const finalX = node.fx, finalY = node.fy;
+        node.fx = null;
+        node.fy = null;
+        onManualMove(id, { x: finalX, y: finalY });
+      }
+    } else {
+      handleBubbleClick(id);
     }
   }
 
@@ -633,7 +791,7 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
 
   // Pack same-day tasks side by side (filling the row before wrapping),
   // oldest day's row on top, each following day's row below it.
-  const { layoutById, contentHeight, todayY } = useMemo(() => {
+  const { layoutById, contentHeight, todayY, tomorrowY } = useMemo(() => {
     const topPad = 90, bottomPad = 70, gap = 14, groupGap = 36;
     const width = Math.max(100, size.w);
     const rtl = STRINGS[lang].dir === 'rtl';
@@ -644,16 +802,36 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(t);
     }
+    // Order tasks within each same-day group by the active criteria, in the
+    // exact precedence the user picked them in (first picked = primary key).
+    const compareByKey = (key, a, b) => {
+      if (key === 'duration') return a.estimatedHours - b.estimatedHours;
+      if (key === 'priority') return PRIORITY_ORDER.indexOf(b.priority) - PRIORITY_ORDER.indexOf(a.priority);
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    };
+    const withinGroupCompare = (a, b) => {
+      for (const key of sortKeys) {
+        const c = compareByKey(key, a, b);
+        if (c !== 0) return c;
+      }
+      return 0;
+    };
+    for (const list of groups.values()) list.sort(withinGroupCompare);
     const sortedKeys = Array.from(groups.keys()).sort();
     const todayK = dayKey(new Date().toISOString());
+    const tomorrowK = dayKey(new Date(Date.now() + 86400000).toISOString());
 
     const positions = new Map();
     let cursorY = topPad;
     let todayLineY = null;
+    let tomorrowLineY = null;
 
     for (const key of sortedKeys) {
       if (todayLineY === null && key >= todayK) {
         todayLineY = cursorY - groupGap / 2;
+      }
+      if (tomorrowLineY === null && key >= tomorrowK) {
+        tomorrowLineY = cursorY - groupGap / 2;
       }
       let cursorX = rtl ? width : 0;
       let rowMaxDiameter = 0;
@@ -682,13 +860,24 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
       cursorY += rowMaxDiameter + groupGap;
     }
     if (todayLineY === null) todayLineY = cursorY - groupGap / 2;
+    if (tomorrowLineY === null) tomorrowLineY = cursorY - groupGap / 2;
+
+    // Manual drag overrides win over the automatic packed position, but keep
+    // riding on the same radius so sizing stays consistent with duration.
+    if (manualPositions) {
+      for (const id in manualPositions) {
+        const existing = positions.get(id);
+        if (existing) positions.set(id, { x: manualPositions[id].x, y: manualPositions[id].y, r: existing.r });
+      }
+    }
 
     return {
       layoutById: positions,
       contentHeight: Math.max(size.h, cursorY + bottomPad),
       todayY: todayLineY,
+      tomorrowY: tomorrowLineY,
     };
-  }, [tasks, size.w, size.h, radiusScale, lang]);
+  }, [tasks, size.w, size.h, radiusScale, lang, sortKeys, manualPositions]);
 
   // (re)build simulation whenever the task list, layout, or canvas size changes
   useEffect(() => {
@@ -782,6 +971,11 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
             <span className="today-line-label">{s.todayLabel}</span>
           </div>
         )}
+        {tasks.length > 0 && (
+          <div className="today-line tomorrow-line" style={{ top: tomorrowY }}>
+            <span className="today-line-label tomorrow-line-label">{s.afterTodayLabel}</span>
+          </div>
+        )}
         {tasks.map(t => {
           const overdue = isOverdue(t);
           const meta = PRIORITY[t.priority] || PRIORITY.normal;
@@ -807,7 +1001,9 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
               <div
                 className={'bubble-inner' + (completedShown ? ' completed' : '') + (overdue ? ' overdue-ring' : '') + (poppingIds.has(t.id) ? ' popping' : '')}
                 style={style}
-                onClick={() => handleBubbleClick(t.id)}
+                onPointerDown={(e) => handlePointerDown(e, t.id)}
+                onPointerMove={(e) => handlePointerMove(e, t.id)}
+                onPointerUp={(e) => handlePointerUp(e, t.id)}
               >
                 <div className="bubble-label">
                   <div className="bubble-title">{t.title}</div>
@@ -1070,6 +1266,31 @@ function BatchTaskModal({ onCancel, onSaveAll, lang }) {
   );
 }
 
+function BubbleLogo({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="logo-g-green" cx="35%" cy="28%" r="75%">
+          <stop offset="0%" stopColor="#86efac" /><stop offset="55%" stopColor="#22c55e" /><stop offset="100%" stopColor="#15803d" />
+        </radialGradient>
+        <radialGradient id="logo-g-yellow" cx="35%" cy="28%" r="75%">
+          <stop offset="0%" stopColor="#fef08a" /><stop offset="55%" stopColor="#facc15" /><stop offset="100%" stopColor="#ca8a04" />
+        </radialGradient>
+        <radialGradient id="logo-g-orange" cx="35%" cy="28%" r="75%">
+          <stop offset="0%" stopColor="#fed7aa" /><stop offset="55%" stopColor="#fb923c" /><stop offset="100%" stopColor="#c2410c" />
+        </radialGradient>
+        <radialGradient id="logo-g-red" cx="35%" cy="28%" r="75%">
+          <stop offset="0%" stopColor="#fca5a5" /><stop offset="55%" stopColor="#ef4444" /><stop offset="100%" stopColor="#b91c1c" />
+        </radialGradient>
+      </defs>
+      <circle cx="38" cy="38" r="27" fill="url(#logo-g-green)" opacity="0.95" />
+      <circle cx="65" cy="40" r="21" fill="url(#logo-g-yellow)" opacity="0.92" />
+      <circle cx="39" cy="66" r="23" fill="url(#logo-g-orange)" opacity="0.92" />
+      <circle cx="66" cy="67" r="18" fill="url(#logo-g-red)" opacity="0.95" />
+    </svg>
+  );
+}
+
 function ThemeIcon({ theme }) {
   if (theme === 'light') {
     return (
@@ -1086,6 +1307,72 @@ function ThemeIcon({ theme }) {
   );
 }
 
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.2 2" />
+    </svg>
+  );
+}
+
+function FlagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 3v18" />
+      <path d="M5 4h11l-2.5 4L16 12H5" />
+    </svg>
+  );
+}
+
+function ResetIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+      <path d="M3 4v5h5" />
+    </svg>
+  );
+}
+
+function TrophyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z" />
+      <path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" />
+    </svg>
+  );
+}
+
+function StatsPanel({ stats, lang }) {
+  const s = STRINGS[lang];
+  const rows = [
+    [s.statsToday, stats.today],
+    [s.statsWeek, stats.week],
+    [s.statsMonth, stats.month],
+    [s.statsAllTime, stats.allTime],
+  ];
+  return (
+    <div className="stats-panel">
+      <div className="stats-title"><TrophyIcon />{s.statsTitle}</div>
+      {rows.map(([label, value]) => (
+        <div className="stats-row" key={label}>
+          <span className="stats-label">{label}</span>
+          <span className="stats-value">{value.toLocaleString()} <small>{s.statsUnit}</small></span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ---------------- App ---------------- */
 
 function App() {
@@ -1095,9 +1382,33 @@ function App() {
   const [batchOpen, setBatchOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'dark');
   const [lang, setLang] = useState(() => localStorage.getItem(LANG_KEY) || 'ar');
+  const [sortKeys, setSortKeys] = useState(['date']); // order = precedence, e.g. ['date','duration']
+  const [manualPositions, setManualPositions] = useState(loadManualPositions);
+  const [completions, setCompletions] = useState(loadCompletions);
+
+  function toggleSortKey(key) {
+    setSortKeys(prev => {
+      if (prev.includes(key)) {
+        // Never let the chain go empty — keep at least one active criterion.
+        if (prev.length === 1) return prev;
+        return prev.filter(k => k !== key);
+      }
+      return [...prev, key];
+    });
+  }
+
+  function handleManualMove(id, pos) {
+    setManualPositions(prev => ({ ...prev, [id]: pos }));
+  }
+  function resetLayout() {
+    setManualPositions({});
+  }
+
   const s = STRINGS[lang];
 
   useEffect(() => { saveTasks(tasks); }, [tasks]);
+  useEffect(() => { saveManualPositions(manualPositions); }, [manualPositions]);
+  useEffect(() => { saveCompletions(completions); }, [completions]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -1127,11 +1438,38 @@ function App() {
     setFormState(null);
   }
   function toggleComplete(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    const nowCompleted = !task.completed;
     setTasks(prev => prev.map(t => t.id === id
-      ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : null }
+      ? { ...t, completed: nowCompleted, completedAt: nowCompleted ? new Date().toISOString() : null }
       : t));
+    setCompletions(prev => {
+      const withoutThis = prev.filter(c => c.taskId !== id);
+      if (!nowCompleted) return withoutThis;
+      return [...withoutThis, {
+        taskId: id,
+        minutes: Math.max(1, Math.round((Number(task.estimatedHours) || 0) * 60)),
+        completedAt: new Date().toISOString(),
+      }];
+    });
     setFormState(null);
   }
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const todayKey = dayKey(now.toISOString());
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+    let today = 0, week = 0, month = 0, allTime = 0;
+    for (const c of completions) {
+      const d = new Date(c.completedAt);
+      allTime += c.minutes;
+      if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) month += c.minutes;
+      if (d >= weekStart) week += c.minutes;
+      if (dayKey(c.completedAt) === todayKey) today += c.minutes;
+    }
+    return { today, week, month, allTime };
+  }, [completions]);
 
   const editingTask = typeof formState === 'string' && formState !== 'create'
     ? tasks.find(t => t.id === formState)
@@ -1141,7 +1479,7 @@ function App() {
     <div className="app">
       <div className="toolbar">
         <div className="brand">
-          <span className="brand-dot" />
+          <BubbleLogo className="brand-logo" />
           <div>
             <h1>{s.appName}</h1>
             <span>{s.tagline}</span>
@@ -1184,7 +1522,40 @@ function App() {
         </div>
       </div>
 
-      <BubbleField tasks={visibleTasks} onSelect={setFormState} onPop={toggleComplete} lang={lang} />
+      <div className="sort-tabs">
+        {[
+          ['date', s.sortByDate, <CalendarIcon key="i" />],
+          ['duration', s.sortByDuration, <ClockIcon key="i" />],
+          ['priority', s.sortByPriority, <FlagIcon key="i" />],
+        ].map(([key, label, icon]) => {
+          const order = sortKeys.indexOf(key);
+          return (
+            <button
+              key={key}
+              className={'sort-tab' + (order !== -1 ? ' active' : '')}
+              onClick={() => toggleSortKey(key)}
+            >
+              {icon}{label}
+              {order !== -1 && sortKeys.length > 1 && <span className="sort-tab-badge">{order + 1}</span>}
+            </button>
+          );
+        })}
+        <button className="sort-tab reset-tab" onClick={resetLayout} title={s.resetLayout}>
+          <ResetIcon />{s.resetLayout}
+        </button>
+      </div>
+
+      <StatsPanel stats={stats} lang={lang} />
+
+      <BubbleField
+        tasks={visibleTasks}
+        onSelect={setFormState}
+        onPop={toggleComplete}
+        lang={lang}
+        sortKeys={sortKeys}
+        manualPositions={manualPositions}
+        onManualMove={handleManualMove}
+      />
 
       {formState && (
         <TaskFormModal
