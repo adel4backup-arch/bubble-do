@@ -396,29 +396,11 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <script type="text/plain" id="app-source">
 const { useState, useEffect, useRef, useMemo } = React;
 
-// ---- Firebase setup ----
-// Paste the firebaseConfig object from Firebase Console > Project settings >
-// Your apps > Web app here. These values are public client identifiers (not
-// secrets) — real protection comes from the Firestore security rules.
-const firebaseConfig = {
-  apiKey: 'REPLACE_ME',
-  authDomain: 'REPLACE_ME.firebaseapp.com',
-  projectId: 'REPLACE_ME',
-  storageBucket: 'REPLACE_ME.appspot.com',
-  messagingSenderId: 'REPLACE_ME',
-  appId: 'REPLACE_ME',
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
+const STORAGE_KEY = 'davayer-davayer-tasks-v1';
 const THEME_KEY = 'davayer-davayer-theme';
 const LANG_KEY = 'davayer-davayer-lang';
 
@@ -535,6 +517,11 @@ function daysUntil(dueDateIso) {
   return diffMs / 86400000;
 }
 
+function dayKey(iso) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function formatDate(iso, lang) {
   try {
     return new Intl.DateTimeFormat(STRINGS[lang].dateLocale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
@@ -644,37 +631,66 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
     };
   }, [tasks]);
 
-  // Strict ordering by due date: oldest date always ends up above a newer
-  // one, regardless of how close/far apart the actual dates are. The content
-  // area grows past the viewport (instead of squeezing everyone into it) once
-  // there are enough tasks to need more room, so the field scrolls instead.
-  const { yTargetById, contentHeight, todayY } = useMemo(() => {
-    const topPad = 90, bottomPad = 70, slotHeight = 150;
-    const height = Math.max(size.h, topPad + bottomPad + Math.max(0, tasks.length - 1) * slotHeight);
-    const usable = Math.max(10, height - topPad - bottomPad);
-    const sorted = [...tasks].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-    const n = sorted.length;
-    const map = new Map();
-    sorted.forEach((t, i) => {
-      const frac = n <= 1 ? 0.5 : i / (n - 1);
-      map.set(t.id, topPad + frac * usable);
-    });
+  // Pack same-day tasks side by side (filling the row before wrapping),
+  // oldest day's row on top, each following day's row below it.
+  const { layoutById, contentHeight, todayY } = useMemo(() => {
+    const topPad = 90, bottomPad = 70, gap = 14, groupGap = 36;
+    const width = Math.max(100, size.w);
+    const rtl = STRINGS[lang].dir === 'rtl';
 
-    // Where "now" falls among the same ranked rows: the midpoint between the
-    // last overdue task's row and the first upcoming task's row.
-    const now = Date.now();
-    let k = 0;
-    while (k < n && new Date(sorted[k].dueDate).getTime() < now) k++;
-    let todayFrac;
-    if (n === 0) todayFrac = 0.5;
-    else if (n === 1) todayFrac = k === 0 ? 0.15 : 0.85;
-    else todayFrac = Math.min(1, Math.max(0, (k - 0.5) / (n - 1)));
-    const today = topPad + todayFrac * usable;
+    const groups = new Map();
+    for (const t of tasks) {
+      const key = dayKey(t.dueDate);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(t);
+    }
+    const sortedKeys = Array.from(groups.keys()).sort();
+    const todayK = dayKey(new Date().toISOString());
 
-    return { yTargetById: map, contentHeight: height, todayY: today };
-  }, [tasks, size.h]);
+    const positions = new Map();
+    let cursorY = topPad;
+    let todayLineY = null;
 
-  // (re)build simulation whenever the task list, or canvas size, changes
+    for (const key of sortedKeys) {
+      if (todayLineY === null && key >= todayK) {
+        todayLineY = cursorY - groupGap / 2;
+      }
+      let cursorX = rtl ? width : 0;
+      let rowMaxDiameter = 0;
+      for (const t of groups.get(key)) {
+        const r = radiusScale(t.estimatedHours);
+        const d = r * 2;
+        if (rtl) {
+          if (cursorX !== width && cursorX - d < 0) {
+            cursorY += rowMaxDiameter + gap;
+            cursorX = width;
+            rowMaxDiameter = 0;
+          }
+          positions.set(t.id, { x: cursorX - r, y: cursorY + r, r });
+          cursorX -= d + gap;
+        } else {
+          if (cursorX !== 0 && cursorX + d > width) {
+            cursorY += rowMaxDiameter + gap;
+            cursorX = 0;
+            rowMaxDiameter = 0;
+          }
+          positions.set(t.id, { x: cursorX + r, y: cursorY + r, r });
+          cursorX += d + gap;
+        }
+        rowMaxDiameter = Math.max(rowMaxDiameter, d);
+      }
+      cursorY += rowMaxDiameter + groupGap;
+    }
+    if (todayLineY === null) todayLineY = cursorY - groupGap / 2;
+
+    return {
+      layoutById: positions,
+      contentHeight: Math.max(size.h, cursorY + bottomPad),
+      todayY: todayLineY,
+    };
+  }, [tasks, size.w, size.h, radiusScale, lang]);
+
+  // (re)build simulation whenever the task list, layout, or canvas size changes
   useEffect(() => {
     const w = size.w;
     const h = contentHeight;
@@ -682,27 +698,31 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
 
     const nodes = tasks.map(t => {
       const prev = prevById.get(t.id);
-      const r = radiusScale(t.estimatedHours);
-      const newTy = yTargetById.get(t.id);
+      const slot = layoutById.get(t.id);
       if (prev) {
-        prev.r = r;
+        prev.r = slot.r;
         prev.task = t;
-        // Snap straight to the new row when the due date (or window size)
-        // changes the target instead of waiting on the weak drift force —
-        // otherwise an edited date can take a very long time to visibly move.
-        if (prev.ty !== newTy) prev.y = newTy;
-        prev.ty = newTy;
+        // Snap straight to the new slot when the layout shifts (task added/
+        // removed/edited) instead of waiting on the anchor force — otherwise
+        // an edit can take a very long time to visibly settle.
+        if (prev.gx !== slot.x || prev.gy !== slot.y) {
+          prev.x = slot.x;
+          prev.y = slot.y;
+        }
+        prev.gx = slot.x;
+        prev.gy = slot.y;
         return prev;
       }
       return {
         id: t.id,
         task: t,
-        r,
-        x: Math.random() * Math.max(1, w - 2 * r) + r,
-        y: newTy,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        ty: newTy,
+        r: slot.r,
+        x: slot.x,
+        y: slot.y,
+        vx: 0,
+        vy: 0,
+        gx: slot.x,
+        gy: slot.y,
       };
     });
     nodesRef.current = nodes;
@@ -723,12 +743,11 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
 
     const sim = d3.forceSimulation(nodes)
       .alphaDecay(0)
-      .alphaTarget(0.06)
-      .velocityDecay(0.22)
-      .force('x', d3.forceX(w / 2).strength(0.012))
-      .force('y', d3.forceY(d => d.ty).strength(0.09))
-      .force('collide', d3.forceCollide(d => d.r + 6).strength(0.9).iterations(2))
-      .force('charge', d3.forceManyBody().strength(-6))
+      .alphaTarget(0.05)
+      .velocityDecay(0.3)
+      .force('x', d3.forceX(d => d.gx).strength(0.4))
+      .force('y', d3.forceY(d => d.gy).strength(0.4))
+      .force('collide', d3.forceCollide(d => d.r + 4).strength(0.9).iterations(2))
       .on('tick', () => {
         for (const n of nodesRef.current) {
           n.x = Math.max(n.r, Math.min(w - n.r, n.x));
@@ -746,7 +765,7 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
     simRef.current = sim;
     return () => sim.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks, size, radiusScale, yTargetById, contentHeight]);
+  }, [tasks, size, radiusScale, layoutById, contentHeight]);
 
   return (
     <div className="field-wrap" ref={containerRef}>
