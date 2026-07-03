@@ -165,7 +165,12 @@
   .field-wrap {
     position: relative;
     flex: 1;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .bubble-canvas {
+    position: relative;
+    width: 100%;
   }
   .empty-state {
     position: absolute; inset: 0;
@@ -176,13 +181,17 @@
   }
   .empty-state b { color: var(--text); font-size: 17px; font-weight: 700; }
 
-  .axis-hint {
-    position: absolute; inset-inline-end: 14px; top: 10px; bottom: 10px;
-    display: flex; flex-direction: column; justify-content: space-between;
+  .axis-hint-top, .axis-hint-bottom {
+    position: sticky;
+    inset-inline-end: 14px;
+    float: inline-end;
+    width: fit-content;
     font-size: 11px; color: var(--text-dim); opacity: .55;
     pointer-events: none; text-align: end;
-    z-index: 1;
+    z-index: 2;
   }
+  .axis-hint-top { top: 10px; }
+  .axis-hint-bottom { bottom: 10px; }
 
   .bubble {
     position: absolute;
@@ -594,10 +603,12 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
   }, [tasks]);
 
   // Strict ordering by due date: oldest date always ends up above a newer
-  // one, regardless of how close/far apart the actual dates are.
-  const yTargetById = useMemo(() => {
-    const topPad = 90, bottomPad = 70;
-    const height = size.h;
+  // one, regardless of how close/far apart the actual dates are. The content
+  // area grows past the viewport (instead of squeezing everyone into it) once
+  // there are enough tasks to need more room, so the field scrolls instead.
+  const { yTargetById, contentHeight } = useMemo(() => {
+    const topPad = 90, bottomPad = 70, slotHeight = 150;
+    const height = Math.max(size.h, topPad + bottomPad + Math.max(0, tasks.length - 1) * slotHeight);
     const sorted = [...tasks].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     const n = sorted.length;
     const map = new Map();
@@ -605,12 +616,13 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
       const frac = n <= 1 ? 0.5 : i / (n - 1);
       map.set(t.id, topPad + frac * Math.max(10, height - topPad - bottomPad));
     });
-    return map;
+    return { yTargetById: map, contentHeight: height };
   }, [tasks, size.h]);
 
   // (re)build simulation whenever the task list, or canvas size, changes
   useEffect(() => {
-    const { w, h } = size;
+    const w = size.w;
+    const h = contentHeight;
     const prevById = new Map(nodesRef.current.map(n => [n.id, n]));
 
     const nodes = tasks.map(t => {
@@ -679,7 +691,7 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
     simRef.current = sim;
     return () => sim.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks, size, radiusScale, yTargetById]);
+  }, [tasks, size, radiusScale, yTargetById, contentHeight]);
 
   return (
     <div className="field-wrap" ref={containerRef}>
@@ -689,46 +701,46 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
           <span>{s.emptyHint}</span>
         </div>
       )}
-      <div className="axis-hint">
-        <span>{s.axisOverdue}</span>
-        <span>{s.axisFuture}</span>
-      </div>
-      {tasks.map(t => {
-        const overdue = isOverdue(t);
-        const meta = PRIORITY[t.priority] || PRIORITY.normal;
-        const completedShown = t.completed;
-        const style = completedShown
-          ? {
-              background: '#ffffff',
-              border: '3px dashed #22c55e',
-              boxShadow: '0 0 0 3px rgba(255,255,255,0.06)',
-            }
-          : {
-              background: meta.color,
-              border: '1px solid rgba(255,255,255,0.35)',
-              boxShadow: `0 0 26px 2px ${meta.color}66`,
-            };
-        return (
-          <div
-            key={t.id}
-            ref={el => { if (el) elRefs.current[t.id] = el; }}
-            className="bubble"
-            title={t.title}
-          >
+      <div className="axis-hint-top"><span>{s.axisOverdue}</span></div>
+      <div className="bubble-canvas" style={{ height: contentHeight }}>
+        {tasks.map(t => {
+          const overdue = isOverdue(t);
+          const meta = PRIORITY[t.priority] || PRIORITY.normal;
+          const completedShown = t.completed;
+          const style = completedShown
+            ? {
+                background: '#ffffff',
+                border: '3px dashed #22c55e',
+                boxShadow: '0 0 0 3px rgba(255,255,255,0.06)',
+              }
+            : {
+                background: meta.color,
+                border: '1px solid rgba(255,255,255,0.35)',
+                boxShadow: `0 0 26px 2px ${meta.color}66`,
+              };
+          return (
             <div
-              className={'bubble-inner' + (completedShown ? ' completed' : '') + (overdue ? ' overdue-ring' : '') + (poppingIds.has(t.id) ? ' popping' : '')}
-              style={style}
-              onClick={() => handleBubbleClick(t.id)}
+              key={t.id}
+              ref={el => { if (el) elRefs.current[t.id] = el; }}
+              className="bubble"
+              title={t.title}
             >
-              <div className="bubble-label">
-                <div className="bubble-title">{t.title}</div>
-                <div className="bubble-meta">{formatDateShort(t.dueDate)}</div>
-                <div className="bubble-meta">{formatDuration(t.estimatedHours, lang)}</div>
+              <div
+                className={'bubble-inner' + (completedShown ? ' completed' : '') + (overdue ? ' overdue-ring' : '') + (poppingIds.has(t.id) ? ' popping' : '')}
+                style={style}
+                onClick={() => handleBubbleClick(t.id)}
+              >
+                <div className="bubble-label">
+                  <div className="bubble-title">{t.title}</div>
+                  <div className="bubble-meta">{formatDateShort(t.dueDate)}</div>
+                  <div className="bubble-meta">{formatDuration(t.estimatedHours, lang)}</div>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      <div className="axis-hint-bottom"><span>{s.axisFuture}</span></div>
     </div>
   );
 }
