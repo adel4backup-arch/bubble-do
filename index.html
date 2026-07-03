@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>bubble-do</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZy1ncmVlbiIgY3g9IjM1JSIgY3k9IjI4JSIgcj0iNzUlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzg2ZWZhYyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iIzIyYzU1ZSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxNTgwM2QiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImcteWVsbG93IiBjeD0iMzUlIiBjeT0iMjglIiByPSI3NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmVmMDhhIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjZmFjYzE1Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2NhOGEwNCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZy1vcmFuZ2UiIGN4PSIzNSUiIGN5PSIyOCUiIHI9Ijc1JSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZWQ3YWEiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNmYjkyM2MiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjYzI0MTBjIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJnLXJlZCIgY3g9IjM1JSIgY3k9IjI4JSIgcj0iNzUlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZjYTVhNSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iI2VmNDQ0NCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNiOTFjMWMiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iMjIiIGZpbGw9IiMwYjBmMWYiLz4KICA8Y2lyY2xlIGN4PSIzOCIgY3k9IjM4IiByPSIyNyIgZmlsbD0idXJsKCNnLWdyZWVuKSIgb3BhY2l0eT0iMC45NSIvPgogIDxjaXJjbGUgY3g9IjY1IiBjeT0iNDAiIHI9IjIxIiBmaWxsPSJ1cmwoI2cteWVsbG93KSIgb3BhY2l0eT0iMC45MiIvPgogIDxjaXJjbGUgY3g9IjM5IiBjeT0iNjYiIHI9IjIzIiBmaWxsPSJ1cmwoI2ctb3JhbmdlKSIgb3BhY2l0eT0iMC45MiIvPgogIDxjaXJjbGUgY3g9IjY2IiBjeT0iNjciIHI9IjE4IiBmaWxsPSJ1cmwoI2ctcmVkKSIgb3BhY2l0eT0iMC45NSIvPgo8L3N2Zz4K" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet" />
 <style>
@@ -99,6 +99,7 @@
     border-bottom: 1px solid var(--panel-border);
     backdrop-filter: blur(14px);
     z-index: 15;
+    flex-wrap: wrap;
   }
   .sort-tab {
     display: flex; align-items: center; gap: 6px;
@@ -106,6 +107,7 @@
     border-radius: 10px; padding: 7px 14px;
     font-family: inherit; font-size: 13px; font-weight: 600;
     color: var(--text-dim); cursor: pointer;
+    white-space: nowrap;
   }
   .sort-tab svg { width: 15px; height: 15px; }
   .sort-tab:hover { border-color: var(--panel-border); color: var(--text); }
@@ -120,32 +122,60 @@
   }
   .reset-tab { margin-inline-start: auto; }
 
-  .stats-panel {
-    position: absolute;
-    inset-inline-start: 16px;
-    bottom: 16px;
-    z-index: 10;
-    background: var(--panel);
+  .stats-toggle-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 10px;
     border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    padding: 14px 16px;
-    backdrop-filter: blur(14px);
-    min-width: 180px;
-    box-shadow: 0 20px 40px -20px rgba(0,0,0,.4);
+    background: var(--surface);
+    color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
   }
-  .stats-title {
-    display: flex; align-items: center; gap: 7px;
-    font-size: 12.5px; font-weight: 800; color: var(--accent);
-    margin-bottom: 10px;
+  .stats-toggle-btn:hover { border-color: var(--accent); }
+  .stats-toggle-btn svg { width: 18px; height: 18px; }
+
+  .stats-drawer-overlay {
+    position: fixed; inset: 0;
+    background: rgba(6,8,18,.45);
+    z-index: 60;
+    animation: fadeIn .15s ease;
   }
-  .stats-title svg { width: 15px; height: 15px; }
-  .stats-row {
+  .stats-drawer {
+    position: fixed; top: 0; bottom: 0;
+    inset-inline-end: 0;
+    width: min(300px, 85vw);
+    background: linear-gradient(180deg, var(--modal-grad-1), var(--modal-grad-2));
+    border-inline-start: 1px solid var(--panel-border);
+    box-shadow: -20px 0 50px -20px rgba(0,0,0,.5);
+    padding: 22px 20px;
+    overflow-y: auto;
+    z-index: 61;
+  }
+  .stats-drawer-header {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 12.5px; color: var(--text-dim);
-    padding: 4px 0;
+    margin-bottom: 22px;
   }
-  .stats-value { color: var(--text); font-weight: 800; }
-  .stats-value small { color: var(--text-dim); font-weight: 600; font-size: 10.5px; }
+  .stats-drawer-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 16px; font-weight: 800; color: var(--accent);
+  }
+  .stats-drawer-title svg { width: 18px; height: 18px; }
+  .stats-drawer-close {
+    background: transparent; border: none; color: var(--text-dim);
+    font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px;
+  }
+  .stats-drawer-close:hover { color: var(--text); background: var(--surface); }
+  .stats-card {
+    background: var(--surface); border: 1px solid var(--panel-border);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .stats-card-label { font-size: 12.5px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
+  .stats-card-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .stats-card-points { font-size: 22px; font-weight: 900; color: var(--text); }
+  .stats-card-points small { font-size: 11px; color: var(--text-dim); font-weight: 600; }
+  .stats-card-count { font-size: 12.5px; color: var(--text-dim); }
+  .stats-card-count b { color: var(--text); font-weight: 800; }
 
   .toggle {
     display: flex; align-items: center; gap: 8px;
@@ -443,6 +473,25 @@
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 640px) {
+    .toolbar { padding: 10px 14px; gap: 8px; }
+    .brand h1 { font-size: 15px; }
+    .brand span { display: none; }
+    .brand-logo { width: 28px; height: 28px; }
+    .toolbar-actions { gap: 8px; }
+    .legend { display: none; }
+    .toggle { font-size: 11.5px; padding: 5px 8px; }
+    .lang-toggle, .theme-toggle, .stats-toggle-btn { width: 32px; height: 32px; }
+    .btn-secondary, .btn-primary { padding: 8px 12px; font-size: 12.5px; }
+    .sort-tabs { padding: 8px 14px; gap: 4px; }
+    .sort-tab { padding: 6px 10px; font-size: 11.5px; }
+    .reset-tab { margin-inline-start: 0; }
+    .modal { padding: 18px 16px; }
+    .field-row { flex-direction: column; }
+    .batch-modal { width: 94vw; }
+  }
 </style>
 </head>
 <body>
@@ -499,6 +548,7 @@ const STRINGS = {
     statsMonth: 'الشهر ده',
     statsAllTime: 'من البداية',
     statsUnit: 'نقطة',
+    statsTasksUnit: 'مهمة',
     fieldName: 'اسم المهمة',
     fieldNamePlaceholder: 'مثلاً: تجهيز عرض العميل',
     fieldDescription: 'الوصف',
@@ -549,6 +599,7 @@ const STRINGS = {
     statsMonth: 'This month',
     statsAllTime: 'All time',
     statsUnit: 'pts',
+    statsTasksUnit: 'tasks',
     fieldName: 'Task name',
     fieldNamePlaceholder: 'e.g. Prepare client presentation',
     fieldDescription: 'Description',
@@ -1352,7 +1403,7 @@ function TrophyIcon() {
   );
 }
 
-function StatsPanel({ stats, lang }) {
+function StatsDrawer({ stats, lang, onClose }) {
   const s = STRINGS[lang];
   const rows = [
     [s.statsToday, stats.today],
@@ -1361,14 +1412,22 @@ function StatsPanel({ stats, lang }) {
     [s.statsAllTime, stats.allTime],
   ];
   return (
-    <div className="stats-panel">
-      <div className="stats-title"><TrophyIcon />{s.statsTitle}</div>
-      {rows.map(([label, value]) => (
-        <div className="stats-row" key={label}>
-          <span className="stats-label">{label}</span>
-          <span className="stats-value">{value.toLocaleString()} <small>{s.statsUnit}</small></span>
+    <div className="stats-drawer-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="stats-drawer">
+        <div className="stats-drawer-header">
+          <div className="stats-drawer-title"><TrophyIcon />{s.statsTitle}</div>
+          <button className="stats-drawer-close" onClick={onClose}>×</button>
         </div>
-      ))}
+        {rows.map(([label, entry]) => (
+          <div className="stats-card" key={label}>
+            <div className="stats-card-label">{label}</div>
+            <div className="stats-card-row">
+              <span className="stats-card-points">{entry.points.toLocaleString()} <small>{s.statsUnit}</small></span>
+              <span className="stats-card-count">{entry.count} <b>{s.statsTasksUnit}</b></span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1385,6 +1444,7 @@ function App() {
   const [sortKeys, setSortKeys] = useState(['date']); // order = precedence, e.g. ['date','duration']
   const [manualPositions, setManualPositions] = useState(loadManualPositions);
   const [completions, setCompletions] = useState(loadCompletions);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   function toggleSortKey(key) {
     setSortKeys(prev => {
@@ -1460,13 +1520,16 @@ function App() {
     const now = new Date();
     const todayKey = dayKey(now.toISOString());
     const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
-    let today = 0, week = 0, month = 0, allTime = 0;
+    const today = { points: 0, count: 0 };
+    const week = { points: 0, count: 0 };
+    const month = { points: 0, count: 0 };
+    const allTime = { points: 0, count: 0 };
     for (const c of completions) {
       const d = new Date(c.completedAt);
-      allTime += c.minutes;
-      if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) month += c.minutes;
-      if (d >= weekStart) week += c.minutes;
-      if (dayKey(c.completedAt) === todayKey) today += c.minutes;
+      allTime.points += c.minutes; allTime.count++;
+      if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) { month.points += c.minutes; month.count++; }
+      if (d >= weekStart) { week.points += c.minutes; week.count++; }
+      if (dayKey(c.completedAt) === todayKey) { today.points += c.minutes; today.count++; }
     }
     return { today, week, month, allTime };
   }, [completions]);
@@ -1517,6 +1580,10 @@ function App() {
             <ThemeIcon theme={theme} />
           </button>
 
+          <button className="stats-toggle-btn" onClick={() => setStatsOpen(true)} title={s.statsTitle}>
+            <TrophyIcon />
+          </button>
+
           <button className="btn-secondary" onClick={() => setBatchOpen(true)}>{s.addBatch}</button>
           <button className="btn-primary" onClick={() => setFormState('create')}>{s.addTask}</button>
         </div>
@@ -1545,7 +1612,6 @@ function App() {
         </button>
       </div>
 
-      <StatsPanel stats={stats} lang={lang} />
 
       <BubbleField
         tasks={visibleTasks}
@@ -1577,6 +1643,10 @@ function App() {
           }}
           lang={lang}
         />
+      )}
+
+      {statsOpen && (
+        <StatsDrawer stats={stats} lang={lang} onClose={() => setStatsOpen(false)} />
       )}
     </div>
   );
