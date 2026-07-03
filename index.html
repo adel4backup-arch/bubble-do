@@ -193,6 +193,28 @@
   .axis-hint-top { top: 10px; }
   .axis-hint-bottom { bottom: 10px; }
 
+  .today-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 0;
+    border-top: 2px dashed var(--accent);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .today-line-label {
+    position: absolute;
+    top: -10px;
+    inset-inline-start: 14px;
+    background: var(--bg-2);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    white-space: nowrap;
+  }
+
   .bubble {
     position: absolute;
     top: 0; left: 0;
@@ -374,11 +396,29 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <script type="text/plain" id="app-source">
 const { useState, useEffect, useRef, useMemo } = React;
 
-const STORAGE_KEY = 'davayer-davayer-tasks-v1';
+// ---- Firebase setup ----
+// Paste the firebaseConfig object from Firebase Console > Project settings >
+// Your apps > Web app here. These values are public client identifiers (not
+// secrets) — real protection comes from the Firestore security rules.
+const firebaseConfig = {
+  apiKey: 'REPLACE_ME',
+  authDomain: 'REPLACE_ME.firebaseapp.com',
+  projectId: 'REPLACE_ME',
+  storageBucket: 'REPLACE_ME.appspot.com',
+  messagingSenderId: 'REPLACE_ME',
+  appId: 'REPLACE_ME',
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 const THEME_KEY = 'davayer-davayer-theme';
 const LANG_KEY = 'davayer-davayer-lang';
 
@@ -407,6 +447,7 @@ const STRINGS = {
     emptyHint: 'دوس على "+ مهمة جديدة" عشان تضيف أول مهمة',
     axisOverdue: '⬆ متأخرة / تاريخها قديم',
     axisFuture: '⬇ لسه بدري عليها',
+    todayLabel: 'النهاردة',
     fieldName: 'اسم المهمة',
     fieldNamePlaceholder: 'مثلاً: تجهيز عرض العميل',
     fieldDescription: 'الوصف',
@@ -445,6 +486,7 @@ const STRINGS = {
     emptyHint: 'Tap "+ New task" to add your first one',
     axisOverdue: '⬆ Overdue / old date',
     axisFuture: '⬇ Still coming up',
+    todayLabel: 'Today',
     fieldName: 'Task name',
     fieldNamePlaceholder: 'e.g. Prepare client presentation',
     fieldDescription: 'Description',
@@ -606,17 +648,30 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
   // one, regardless of how close/far apart the actual dates are. The content
   // area grows past the viewport (instead of squeezing everyone into it) once
   // there are enough tasks to need more room, so the field scrolls instead.
-  const { yTargetById, contentHeight } = useMemo(() => {
+  const { yTargetById, contentHeight, todayY } = useMemo(() => {
     const topPad = 90, bottomPad = 70, slotHeight = 150;
     const height = Math.max(size.h, topPad + bottomPad + Math.max(0, tasks.length - 1) * slotHeight);
+    const usable = Math.max(10, height - topPad - bottomPad);
     const sorted = [...tasks].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     const n = sorted.length;
     const map = new Map();
     sorted.forEach((t, i) => {
       const frac = n <= 1 ? 0.5 : i / (n - 1);
-      map.set(t.id, topPad + frac * Math.max(10, height - topPad - bottomPad));
+      map.set(t.id, topPad + frac * usable);
     });
-    return { yTargetById: map, contentHeight: height };
+
+    // Where "now" falls among the same ranked rows: the midpoint between the
+    // last overdue task's row and the first upcoming task's row.
+    const now = Date.now();
+    let k = 0;
+    while (k < n && new Date(sorted[k].dueDate).getTime() < now) k++;
+    let todayFrac;
+    if (n === 0) todayFrac = 0.5;
+    else if (n === 1) todayFrac = k === 0 ? 0.15 : 0.85;
+    else todayFrac = Math.min(1, Math.max(0, (k - 0.5) / (n - 1)));
+    const today = topPad + todayFrac * usable;
+
+    return { yTargetById: map, contentHeight: height, todayY: today };
   }, [tasks, size.h]);
 
   // (re)build simulation whenever the task list, or canvas size, changes
@@ -703,6 +758,11 @@ function BubbleField({ tasks, onSelect, onPop, lang }) {
       )}
       <div className="axis-hint-top"><span>{s.axisOverdue}</span></div>
       <div className="bubble-canvas" style={{ height: contentHeight }}>
+        {tasks.length > 0 && (
+          <div className="today-line" style={{ top: todayY }}>
+            <span className="today-line-label">{s.todayLabel}</span>
+          </div>
+        )}
         {tasks.map(t => {
           const overdue = isOverdue(t);
           const meta = PRIORITY[t.priority] || PRIORITY.normal;
