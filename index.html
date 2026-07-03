@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>bubble-do</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-1: #0b0f1f;
+    --bg-2: #131a35;
+    --bg-3: #0d1230;
+    --panel: rgba(20, 26, 51, 0.72);
+    --panel-border: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.25);
+    --text: #eef1fb;
+    --text-dim: #9aa3c7;
+    --accent: #7c9bff;
+    --accent-2: #5468e8;
+    --surface: rgba(255, 255, 255, 0.05);
+    --surface-2: rgba(255, 255, 255, 0.03);
+    --surface-focus: rgba(124, 155, 255, 0.08);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+    --overlay-bg: rgba(6, 8, 18, 0.6);
+    --modal-grad-1: #161d3d;
+    --modal-grad-2: #101530;
+    --modal-shadow: rgba(0, 0, 0, 0.6);
+    --accent-glow-1: rgba(124, 155, 255, 0.12);
+    --accent-glow-2: rgba(255, 100, 130, 0.10);
+  }
+  html.light {
+    --bg-1: #eef1fb;
+    --bg-2: #dce3f5;
+    --bg-3: #cfd8ee;
+    --panel: rgba(255, 255, 255, 0.75);
+    --panel-border: rgba(15, 23, 42, 0.08);
+    --border-strong: rgba(15, 23, 42, 0.22);
+    --text: #171b2e;
+    --text-dim: #5b6485;
+    --accent: #4f6df0;
+    --accent-2: #3d57d6;
+    --surface: rgba(15, 23, 42, 0.045);
+    --surface-2: rgba(15, 23, 42, 0.03);
+    --surface-focus: rgba(79, 109, 240, 0.09);
+    --scrollbar-thumb: rgba(15, 23, 42, 0.18);
+    --overlay-bg: rgba(30, 35, 60, 0.35);
+    --modal-grad-1: #ffffff;
+    --modal-grad-2: #eef1fb;
+    --modal-shadow: rgba(30, 40, 80, 0.25);
+    --accent-glow-1: rgba(79, 109, 240, 0.10);
+    --accent-glow-2: rgba(255, 100, 130, 0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 15% 20%, var(--accent-glow-1), transparent 40%),
+      radial-gradient(circle at 85% 75%, var(--accent-glow-2), transparent 45%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3) 100%);
+    transition: background .2s ease, color .2s ease;
+  }
+  #root { height: 100vh; width: 100vw; position: relative; }
+
+  .app { height: 100%; width: 100%; display: flex; flex-direction: column; }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 22px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--panel-border);
+    backdrop-filter: blur(14px);
+    z-index: 20;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #a9c1ff, #5a78ff 60%, #2c47c9);
+    box-shadow: 0 0 14px 2px rgba(90, 120, 255, 0.7);
+  }
+  .brand h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: .3px; }
+  .brand span { font-size: 12px; color: var(--text-dim); display:block; margin-top:2px; }
+
+  .toolbar-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+  .toggle {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-dim); cursor: pointer;
+    user-select: none;
+    padding: 6px 10px; border-radius: 10px;
+    border: 1px solid transparent;
+  }
+  .toggle:hover { border-color: var(--panel-border); color: var(--text); }
+  .toggle input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+
+  .theme-toggle {
+    display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--panel-border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .theme-toggle:hover { border-color: var(--accent); }
+  .theme-toggle svg { width: 18px; height: 18px; }
+
+  .lang-toggle {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 44px; height: 38px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--panel-border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .lang-toggle:hover { border-color: var(--accent); }
+
+  .btn-primary {
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #7c9bff, #5468e8);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 10px 18px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 6px 18px -4px rgba(90, 110, 255, 0.6);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 22px -4px rgba(90,110,255,.75); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface);
+    color: var(--text); border: 1.5px solid var(--panel-border); border-radius: 12px;
+    padding: 9px 16px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .btn-secondary:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .btn-secondary:active { transform: translateY(0); }
+
+  .legend { display:flex; gap:14px; align-items:center; flex-wrap: wrap; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color: var(--text-dim); }
+  .legend-swatch { width:11px; height:11px; border-radius:50%; display:inline-block; }
+
+  /* ---------- Bubble field ---------- */
+  .field-wrap {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+  .empty-state {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 10px;
+    color: var(--text-dim); pointer-events: none;
+    text-align: center;
+  }
+  .empty-state b { color: var(--text); font-size: 17px; font-weight: 700; }
+
+  .axis-hint {
+    position: absolute; inset-inline-end: 14px; top: 10px; bottom: 10px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    font-size: 11px; color: var(--text-dim); opacity: .55;
+    pointer-events: none; text-align: end;
+    z-index: 1;
+  }
+
+  .bubble {
+    position: absolute;
+    top: 0; left: 0;
+    will-change: transform;
+  }
+  .bubble:hover { z-index: 5; }
+  .bubble-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    color: #101426;
+    font-weight: 700;
+    padding: 6px;
+    user-select: none;
+    transition: box-shadow .2s ease, filter .2s ease;
+  }
+  .bubble-inner:hover { filter: brightness(1.08); }
+  .bubble-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    color: #12162b;
+  }
+  .bubble-title {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 1px 0 rgba(255,255,255,.25);
+  }
+  .bubble-meta {
+    font-size: 10.5px;
+    font-weight: 600;
+    opacity: .75;
+    white-space: nowrap;
+  }
+  .bubble-inner.completed .bubble-label,
+  .bubble-inner.completed .bubble-title,
+  .bubble-inner.completed .bubble-meta { color: #1f7a3e; text-shadow: none; }
+
+  .bubble-inner.overdue-ring::after {
+    content: '';
+    position: absolute; inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.96); opacity: .7; }
+    50% { transform: scale(1.04); opacity: .15; }
+    100% { transform: scale(0.96); opacity: .7; }
+  }
+
+  @keyframes bubblePop {
+    0% { transform: scale(1); opacity: 1; }
+    35% { transform: scale(1.22); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  .bubble-inner.popping {
+    animation: bubblePop 380ms ease-in forwards;
+    pointer-events: none;
+  }
+
+  /* ---------- Modal ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: var(--overlay-bg);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+    animation: fadeIn .15s ease;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .modal {
+    width: min(460px, 92vw);
+    max-height: 88vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, var(--modal-grad-1), var(--modal-grad-2));
+    border: 1px solid var(--panel-border);
+    border-radius: 18px;
+    padding: 22px 22px 20px;
+    box-shadow: 0 30px 60px -20px var(--modal-shadow);
+  }
+  .modal h2 { margin: 0 0 16px; font-size: 18px; }
+  .field { margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
+  .field input, .field textarea, .field select {
+    background: var(--surface);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--accent);
+    background: var(--surface-focus);
+  }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field { flex: 1; margin-bottom: 0; }
+  .field-hint { font-size: 11.5px; color: var(--text-dim); }
+
+  .priority-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+  .priority-opt {
+    flex: 1; min-width: 70px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1.5px solid var(--panel-border);
+    border-radius: 10px; padding: 8px 6px;
+    cursor: pointer; font-size: 12.5px; color: var(--text-dim);
+    background: var(--surface-2);
+  }
+  .priority-opt.active { color: #fff; border-color: transparent; font-weight: 700; }
+  .priority-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--panel-border);
+    color: var(--text-dim); padding: 9px 16px; border-radius: 10px;
+    cursor: pointer; font-family: inherit; font-size: 13.5px;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+  .btn-danger {
+    background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.4);
+    color: #ff8787; padding: 9px 16px; border-radius: 10px;
+    cursor: pointer; font-family: inherit; font-size: 13.5px;
+  }
+  .btn-danger:hover { background: rgba(239,68,68,.2); }
+
+  /* ---------- Batch task modal ---------- */
+  .batch-modal { width: min(620px, 95vw); }
+  .batch-slides { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+  .batch-slide {
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 14px;
+    background: var(--surface-2);
+    position: relative;
+  }
+  .batch-slide-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .batch-slide-header span { font-size: 13px; font-weight: 700; color: var(--text-dim); }
+  .slide-remove {
+    background: transparent; border: none; color: var(--text-dim);
+    font-size: 18px; line-height: 1; cursor: pointer;
+    padding: 2px 8px; border-radius: 6px; font-family: inherit;
+  }
+  .slide-remove:hover { color: #ff8787; background: rgba(239,68,68,.12); }
+  .add-slide-btn {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1.5px dashed var(--panel-border); border-radius: 12px;
+    padding: 12px; background: transparent; color: var(--text-dim);
+    cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .add-slide-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script type="text/plain" id="app-source">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+const STORAGE_KEY = 'davayer-davayer-tasks-v1';
+const THEME_KEY = 'davayer-davayer-theme';
+const LANG_KEY = 'davayer-davayer-lang';
+
+const PRIORITY = {
+  normal:        { color: '#22c55e' },
+  important:     { color: '#facc15' },
+  veryImportant: { color: '#fb923c' },
+  urgent:        { color: '#ef4444' },
+};
+const PRIORITY_ORDER = ['normal', 'important', 'veryImportant', 'urgent'];
+
+const STRINGS = {
+  ar: {
+    dir: 'rtl',
+    dateLocale: 'ar-EG',
+    appName: 'bubble-do',
+    tagline: 'إدارة المهام بالفقاعات',
+    priority: { normal: 'عادية', important: 'مهمة', veryImportant: 'مهمة أوي', urgent: 'إيرجنت' },
+    showCompleted: 'إظهار المهام المخلّصة',
+    themeToLight: 'الوضع النهاري',
+    themeToDark: 'الوضع الليلي',
+    langToggle: 'EN',
+    addBatch: '+ إضافة مجموعة مهام',
+    addTask: '+ مهمة جديدة',
+    emptyTitle: 'مفيش مهام لسه',
+    emptyHint: 'دوس على "+ مهمة جديدة" عشان تضيف أول مهمة',
+    axisOverdue: '⬆ متأخرة / تاريخها قديم',
+    axisFuture: '⬇ لسه بدري عليها',
+    fieldName: 'اسم المهمة',
+    fieldNamePlaceholder: 'مثلاً: تجهيز عرض العميل',
+    fieldDescription: 'الوصف',
+    fieldDescriptionPlaceholder: 'تفاصيل إضافية عن المهمة...',
+    fieldDeadline: 'تاريخ وموعد الديدلاين',
+    fieldDuration: 'الوقت المتوقع للإنهاء',
+    hoursLabel: 'ساعات',
+    minutesLabel: 'دقايق',
+    fieldPriority: 'الأولوية',
+    formTitleCreate: 'مهمة جديدة',
+    formTitleEdit: 'تعديل المهمة',
+    btnCancel: 'إلغاء',
+    btnDelete: 'حذف',
+    btnMarkDone: 'تم الإنجاز',
+    btnUndoDone: 'تراجع عن الإنجاز',
+    btnSaveCreate: 'إضافة المهمة',
+    btnSaveEdit: 'حفظ',
+    batchTitle: 'إضافة مجموعة مهام',
+    batchSlideLabel: (i) => `مهمة ${i}`,
+    addSlideBtn: '+ إضافة مهمة تانية',
+    saveAllBtn: (n) => `حفظ الكل (${n})`,
+  },
+  en: {
+    dir: 'ltr',
+    dateLocale: 'en-GB',
+    appName: 'bubble-do',
+    tagline: 'Bubble-style task management',
+    priority: { normal: 'Normal', important: 'Important', veryImportant: 'Very important', urgent: 'Urgent' },
+    showCompleted: 'Show completed tasks',
+    themeToLight: 'Switch to light mode',
+    themeToDark: 'Switch to dark mode',
+    langToggle: 'ع',
+    addBatch: '+ Add a batch of tasks',
+    addTask: '+ New task',
+    emptyTitle: 'No tasks yet',
+    emptyHint: 'Tap "+ New task" to add your first one',
+    axisOverdue: '⬆ Overdue / old date',
+    axisFuture: '⬇ Still coming up',
+    fieldName: 'Task name',
+    fieldNamePlaceholder: 'e.g. Prepare client presentation',
+    fieldDescription: 'Description',
+    fieldDescriptionPlaceholder: 'Extra details about the task...',
+    fieldDeadline: 'Deadline date & time',
+    fieldDuration: 'Estimated time to finish',
+    hoursLabel: 'Hours',
+    minutesLabel: 'Minutes',
+    fieldPriority: 'Priority',
+    formTitleCreate: 'New task',
+    formTitleEdit: 'Edit task',
+    btnCancel: 'Cancel',
+    btnDelete: 'Delete',
+    btnMarkDone: 'Mark done',
+    btnUndoDone: 'Undo done',
+    btnSaveCreate: 'Add task',
+    btnSaveEdit: 'Save',
+    batchTitle: 'Add a batch of tasks',
+    batchSlideLabel: (i) => `Task ${i}`,
+    addSlideBtn: '+ Add another task',
+    saveAllBtn: (n) => `Save all (${n})`,
+  },
+};
+
+const OVERDUE_WINDOW_DAYS = 21; // very overdue -> pinned to the top
+const FUTURE_WINDOW_DAYS = 21;  // far in the future -> pinned to the bottom
+const MIN_RADIUS = 52;
+const MAX_RADIUS = 124;
+
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function loadTasks() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+function saveTasks(tasks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+function daysUntil(dueDateIso) {
+  const diffMs = new Date(dueDateIso).getTime() - Date.now();
+  return diffMs / 86400000;
+}
+
+function formatDate(iso, lang) {
+  try {
+    return new Intl.DateTimeFormat(STRINGS[lang].dateLocale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
+  } catch (e) {
+    return iso;
+  }
+}
+
+function formatDateShort(iso) {
+  try {
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } catch (e) {
+    return iso;
+  }
+}
+
+function hoursToHM(totalHours) {
+  const totalMinutes = Math.round((Number(totalHours) || 0) * 60);
+  return { h: Math.floor(totalMinutes / 60), m: totalMinutes % 60 };
+}
+function hmToHours(h, m) {
+  return (Number(h) || 0) + (Number(m) || 0) / 60;
+}
+function formatDuration(totalHours, lang) {
+  const { h, m } = hoursToHM(totalHours);
+  if (lang === 'en') {
+    if (h > 0 && m > 0) return `${h}h ${m}m`;
+    if (h > 0) return `${h}h`;
+    return `${m}m`;
+  }
+  if (h > 0 && m > 0) return `${h} س ${m} د`;
+  if (h > 0) return `${h} س`;
+  return `${m} د`;
+}
+
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function soapBubbleStyle(hex) {
+  return {
+    background: [
+      'radial-gradient(circle at 28% 24%, rgba(255,255,255,0.95), rgba(255,255,255,0.25) 16%, rgba(255,255,255,0) 32%)',
+      `radial-gradient(circle at 70% 78%, ${hexToRgba(hex, 0.4)}, ${hexToRgba(hex, 0.14)} 55%, ${hexToRgba(hex, 0.06)} 100%)`,
+      'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12), rgba(255,255,255,0) 70%)',
+    ].join(', '),
+    border: '1px solid rgba(255,255,255,0.6)',
+    boxShadow: [
+      'inset 0 0 18px rgba(255,255,255,0.35)',
+      'inset 6px 8px 14px rgba(255,255,255,0.25)',
+      `inset -8px -10px 18px ${hexToRgba(hex, 0.18)}`,
+      '0 6px 18px rgba(0,0,0,0.12)',
+      `0 0 20px ${hexToRgba(hex, 0.22)}`,
+    ].join(', '),
+    backdropFilter: 'blur(1.5px)',
+  };
+}
+
+function isOverdue(task) {
+  return !task.completed && daysUntil(task.dueDate) < 0;
+}
+
+/* ---------------- Bubble field (physics + rendering) ---------------- */
+
+const CLICK_DELAY_MS = 260;
+const POP_DURATION_MS = 380;
+
+function BubbleField({ tasks, onSelect, onPop, lang }) {
+  const s = STRINGS[lang];
+  const containerRef = useRef(null);
+  const nodesRef = useRef([]);
+  const simRef = useRef(null);
+  const elRefs = useRef({});
+  const clickTimerRef = useRef(null);
+  const [size, setSize] = useState({ w: 800, h: 600 });
+  const [poppingIds, setPoppingIds] = useState(() => new Set());
+
+  useEffect(() => () => {
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current.timer);
+  }, []);
+
+  function handleBubbleClick(id) {
+    if (clickTimerRef.current && clickTimerRef.current.id === id) {
+      clearTimeout(clickTimerRef.current.timer);
+      clickTimerRef.current = null;
+      setPoppingIds(prev => new Set(prev).add(id));
+      setTimeout(() => {
+        onPop(id);
+        setPoppingIds(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }, POP_DURATION_MS);
+    } else {
+      if (clickTimerRef.current) clearTimeout(clickTimerRef.current.timer);
+      const timer = setTimeout(() => {
+        clickTimerRef.current = null;
+        onSelect(id);
+      }, CLICK_DELAY_MS);
+      clickTimerRef.current = { id, timer };
+    }
+  }
+
+  // track container size
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setSize({ w: width, h: height });
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const radiusScale = useMemo(() => {
+    const hours = tasks.map(t => Math.max(0.1, Number(t.estimatedHours) || 1));
+    const min = Math.min(...hours, 1);
+    const max = Math.max(...hours, 1);
+    return (h) => {
+      const hv = Math.max(0.1, Number(h) || 1);
+      if (max === min) return (MIN_RADIUS + MAX_RADIUS) / 2;
+      const t = (hv - min) / (max - min);
+      return MIN_RADIUS + Math.sqrt(t) * (MAX_RADIUS - MIN_RADIUS);
+    };
+  }, [tasks]);
+
+  const yTarget = useCallback((task, height) => {
+    const topPad = 90, bottomPad = 70;
+    const du = daysUntil(task.dueDate);
+    const norm = (du + OVERDUE_WINDOW_DAYS) / (OVERDUE_WINDOW_DAYS + FUTURE_WINDOW_DAYS);
+    const clamped = Math.min(1, Math.max(0, norm));
+    return topPad + clamped * Math.max(10, height - topPad - bottomPad);
+  }, []);
+
+  // (re)build simulation whenever the task list, or canvas size, changes
+  useEffect(() => {
+    const { w, h } = size;
+    const prevById = new Map(nodesRef.current.map(n => [n.id, n]));
+
+    const nodes = tasks.map(t => {
+      const prev = prevById.get(t.id);
+      const r = radiusScale(t.estimatedHours);
+      const newTy = yTarget(t, h);
+      if (prev) {
+        prev.r = r;
+        prev.task = t;
+        // Snap straight to the new row when the due date (or window size)
+        // changes the target instead of waiting on the weak drift force —
+        // otherwise an edited date can take a very long time to visibly move.
+        if (prev.ty !== newTy) prev.y = newTy;
+        prev.ty = newTy;
+        return prev;
+      }
+      return {
+        id: t.id,
+        task: t,
+        r,
+        x: Math.random() * Math.max(1, w - 2 * r) + r,
+        y: newTy,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        ty: newTy,
+      };
+    });
+    nodesRef.current = nodes;
+
+    // Reflect node state in the DOM immediately, so sizing/position doesn't
+    // depend on an animation frame having ticked yet (e.g. backgrounded tab).
+    for (const n of nodes) {
+      const el = elRefs.current[n.id];
+      if (el) {
+        const d = n.r * 2;
+        el.style.width = d + 'px';
+        el.style.height = d + 'px';
+        el.style.transform = `translate(${n.x - n.r}px, ${n.y - n.r}px)`;
+      }
+    }
+
+    if (simRef.current) simRef.current.stop();
+
+    const sim = d3.forceSimulation(nodes)
+      .alphaDecay(0)
+      .alphaTarget(0.06)
+      .velocityDecay(0.22)
+      .force('x', d3.forceX(w / 2).strength(0.012))
+      .force('y', d3.forceY(d => d.ty).strength(0.09))
+      .force('collide', d3.forceCollide(d => d.r + 6).strength(0.9).iterations(2))
+      .force('charge', d3.forceManyBody().strength(-6))
+      .on('tick', () => {
+        for (const n of nodesRef.current) {
+          n.x = Math.max(n.r, Math.min(w - n.r, n.x));
+          n.y = Math.max(n.r + 60, Math.min(h - n.r - 10, n.y));
+          const el = elRefs.current[n.id];
+          if (el) {
+            const d = n.r * 2;
+            el.style.width = d + 'px';
+            el.style.height = d + 'px';
+            el.style.transform = `translate(${n.x - n.r}px, ${n.y - n.r}px)`;
+          }
+        }
+      });
+
+    simRef.current = sim;
+    return () => sim.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, size, radiusScale, yTarget]);
+
+  return (
+    <div className="field-wrap" ref={containerRef}>
+      {tasks.length === 0 && (
+        <div className="empty-state">
+          <b>{s.emptyTitle}</b>
+          <span>{s.emptyHint}</span>
+        </div>
+      )}
+      <div className="axis-hint">
+        <span>{s.axisOverdue}</span>
+        <span>{s.axisFuture}</span>
+      </div>
+      {tasks.map(t => {
+        const overdue = isOverdue(t);
+        const meta = PRIORITY[t.priority] || PRIORITY.normal;
+        const completedShown = t.completed;
+        const style = completedShown
+          ? {
+              background: '#ffffff',
+              border: '3px dashed #22c55e',
+              boxShadow: '0 0 0 3px rgba(255,255,255,0.06)',
+            }
+          : soapBubbleStyle(meta.color);
+        return (
+          <div
+            key={t.id}
+            ref={el => { if (el) elRefs.current[t.id] = el; }}
+            className="bubble"
+            title={t.title}
+          >
+            <div
+              className={'bubble-inner' + (completedShown ? ' completed' : '') + (overdue ? ' overdue-ring' : '') + (poppingIds.has(t.id) ? ' popping' : '')}
+              style={style}
+              onClick={() => handleBubbleClick(t.id)}
+            >
+              <div className="bubble-label">
+                <div className="bubble-title">{t.title}</div>
+                <div className="bubble-meta">{formatDateShort(t.dueDate)}</div>
+                <div className="bubble-meta">{formatDuration(t.estimatedHours, lang)}</div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------- Task form modal (create / edit) ---------------- */
+
+function TaskFormModal({ initial, onCancel, onSave, onDelete, onToggleComplete, lang }) {
+  const s = STRINGS[lang];
+  const [title, setTitle] = useState(initial?.title || '');
+  const [description, setDescription] = useState(initial?.description || '');
+  const [dueDate, setDueDate] = useState(initial?.dueDate ? toLocalInputValue(initial.dueDate) : defaultDueLocal());
+  const initialHM = hoursToHM(initial?.estimatedHours ?? 1);
+  const [durationHours, setDurationHours] = useState(initialHM.h);
+  const [durationMinutes, setDurationMinutes] = useState(initialHM.m);
+  const [priority, setPriority] = useState(initial?.priority || 'normal');
+  const titleRef = useRef(null);
+
+  useEffect(() => { titleRef.current?.focus(); }, []);
+
+  function toLocalInputValue(iso) {
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function defaultDueLocal() {
+    const d = new Date(Date.now() + 24 * 3600 * 1000);
+    return toLocalInputValue(d.toISOString());
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!title.trim() || !dueDate) return;
+    const totalHours = hmToHours(durationHours, durationMinutes);
+    onSave({
+      id: initial?.id || uid(),
+      title: title.trim(),
+      description: description.trim(),
+      dueDate: new Date(dueDate).toISOString(),
+      estimatedHours: Math.max(1 / 60, totalHours),
+      priority,
+      completed: initial?.completed || false,
+      completedAt: initial?.completedAt || null,
+    });
+  }
+
+  return (
+    <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+      <form className="modal" onSubmit={handleSubmit}>
+        <h2>{initial ? s.formTitleEdit : s.formTitleCreate}</h2>
+
+        <div className="field">
+          <label>{s.fieldName}</label>
+          <input ref={titleRef} value={title} onChange={e => setTitle(e.target.value)} placeholder={s.fieldNamePlaceholder} required />
+        </div>
+
+        <div className="field">
+          <label>{s.fieldDescription}</label>
+          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={s.fieldDescriptionPlaceholder} />
+        </div>
+
+        <div className="field">
+          <label>{s.fieldDeadline}</label>
+          <input type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} required />
+        </div>
+
+        <div className="field">
+          <label>{s.fieldDuration}</label>
+          <div className="field-row">
+            <div className="field">
+              <input type="number" min="0" step="1" value={durationHours} onChange={e => setDurationHours(e.target.value)} placeholder={s.hoursLabel} required />
+              <span className="field-hint">{s.hoursLabel}</span>
+            </div>
+            <div className="field">
+              <input type="number" min="0" max="59" step="5" value={durationMinutes} onChange={e => setDurationMinutes(e.target.value)} placeholder={s.minutesLabel} required />
+              <span className="field-hint">{s.minutesLabel}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>{s.fieldPriority}</label>
+          <div className="priority-picker">
+            {PRIORITY_ORDER.map(key => (
+              <div
+                key={key}
+                className={'priority-opt' + (priority === key ? ' active' : '')}
+                style={priority === key ? { background: PRIORITY[key].color } : {}}
+                onClick={() => setPriority(key)}
+              >
+                <span className="priority-dot" style={{ background: PRIORITY[key].color }} />
+                {s.priority[key]}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="modal-actions">
+          {initial && (
+            <button type="button" className="btn-danger" onClick={() => onDelete(initial.id)}>{s.btnDelete}</button>
+          )}
+          {initial && (
+            <button type="button" className="btn-ghost" onClick={() => onToggleComplete(initial.id)}>
+              {initial.completed ? s.btnUndoDone : s.btnMarkDone}
+            </button>
+          )}
+          <button type="button" className="btn-ghost" onClick={onCancel}>{s.btnCancel}</button>
+          <button type="submit" className="btn-primary">{initial ? s.btnSaveEdit : s.btnSaveCreate}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/* ---------------- Batch task modal (multiple tasks at once) ---------------- */
+
+function defaultDueLocalGlobal() {
+  const d = new Date(Date.now() + 24 * 3600 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function emptyDraft() {
+  return {
+    key: uid(),
+    title: '',
+    description: '',
+    dueDate: defaultDueLocalGlobal(),
+    durationHours: 1,
+    durationMinutes: 0,
+    priority: 'normal',
+  };
+}
+
+function BatchTaskModal({ onCancel, onSaveAll, lang }) {
+  const s = STRINGS[lang];
+  const [drafts, setDrafts] = useState(() => [emptyDraft()]);
+
+  function updateDraft(key, patch) {
+    setDrafts(prev => prev.map(d => d.key === key ? { ...d, ...patch } : d));
+  }
+  function addSlide() {
+    setDrafts(prev => [...prev, emptyDraft()]);
+  }
+  function removeSlide(key) {
+    setDrafts(prev => prev.length > 1 ? prev.filter(d => d.key !== key) : prev);
+  }
+
+  function handleSaveAll() {
+    const valid = drafts.filter(d => d.title.trim() && d.dueDate);
+    if (valid.length === 0) return;
+    const newTasks = valid.map(d => ({
+      id: uid(),
+      title: d.title.trim(),
+      description: d.description.trim(),
+      dueDate: new Date(d.dueDate).toISOString(),
+      estimatedHours: Math.max(1 / 60, hmToHours(d.durationHours, d.durationMinutes)),
+      priority: d.priority,
+      completed: false,
+      completedAt: null,
+    }));
+    onSaveAll(newTasks);
+  }
+
+  return (
+    <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="modal batch-modal">
+        <h2>{s.batchTitle}</h2>
+
+        <div className="batch-slides">
+          {drafts.map((d, i) => (
+            <div className="batch-slide" key={d.key}>
+              <div className="batch-slide-header">
+                <span>{s.batchSlideLabel(i + 1)}</span>
+                {drafts.length > 1 && (
+                  <button type="button" className="slide-remove" onClick={() => removeSlide(d.key)}>×</button>
+                )}
+              </div>
+
+              <div className="field">
+                <label>{s.fieldName}</label>
+                <input
+                  value={d.title}
+                  onChange={e => updateDraft(d.key, { title: e.target.value })}
+                  placeholder={s.fieldNamePlaceholder}
+                />
+              </div>
+
+              <div className="field">
+                <label>{s.fieldDescription}</label>
+                <textarea
+                  value={d.description}
+                  onChange={e => updateDraft(d.key, { description: e.target.value })}
+                  placeholder={s.fieldDescriptionPlaceholder}
+                />
+              </div>
+
+              <div className="field">
+                <label>{s.fieldDeadline}</label>
+                <input
+                  type="datetime-local"
+                  value={d.dueDate}
+                  onChange={e => updateDraft(d.key, { dueDate: e.target.value })}
+                />
+              </div>
+
+              <div className="field">
+                <label>{s.fieldDuration}</label>
+                <div className="field-row">
+                  <div className="field">
+                    <input type="number" min="0" step="1" value={d.durationHours} onChange={e => updateDraft(d.key, { durationHours: e.target.value })} placeholder={s.hoursLabel} />
+                    <span className="field-hint">{s.hoursLabel}</span>
+                  </div>
+                  <div className="field">
+                    <input type="number" min="0" max="59" step="5" value={d.durationMinutes} onChange={e => updateDraft(d.key, { durationMinutes: e.target.value })} placeholder={s.minutesLabel} />
+                    <span className="field-hint">{s.minutesLabel}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="field">
+                <label>{s.fieldPriority}</label>
+                <div className="priority-picker">
+                  {PRIORITY_ORDER.map(key => (
+                    <div
+                      key={key}
+                      className={'priority-opt' + (d.priority === key ? ' active' : '')}
+                      style={d.priority === key ? { background: PRIORITY[key].color } : {}}
+                      onClick={() => updateDraft(d.key, { priority: key })}
+                    >
+                      <span className="priority-dot" style={{ background: PRIORITY[key].color }} />
+                      {s.priority[key]}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button type="button" className="add-slide-btn" onClick={addSlide}>{s.addSlideBtn}</button>
+
+        <div className="modal-actions">
+          <button type="button" className="btn-ghost" onClick={onCancel}>{s.btnCancel}</button>
+          <button type="button" className="btn-primary" onClick={handleSaveAll}>{s.saveAllBtn(drafts.length)}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThemeIcon({ theme }) {
+  if (theme === 'light') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d="M12 3v2M12 19v2M5 5l1.4 1.4M17.6 17.6L19 19M3 12h2M19 12h2M5 19l1.4-1.4M17.6 6.4L19 5" />
+        <circle cx="12" cy="12" r="4.2" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z" />
+    </svg>
+  );
+}
+
+/* ---------------- App ---------------- */
+
+function App() {
+  const [tasks, setTasks] = useState(loadTasks);
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [formState, setFormState] = useState(null); // null | 'create' | taskId
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'dark');
+  const [lang, setLang] = useState(() => localStorage.getItem(LANG_KEY) || 'ar');
+  const s = STRINGS[lang];
+
+  useEffect(() => { saveTasks(tasks); }, [tasks]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light');
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = STRINGS[lang].dir;
+    localStorage.setItem(LANG_KEY, lang);
+  }, [lang]);
+
+  const visibleTasks = useMemo(
+    () => showCompleted ? tasks : tasks.filter(t => !t.completed),
+    [tasks, showCompleted]
+  );
+
+  function upsertTask(task) {
+    setTasks(prev => {
+      const exists = prev.some(t => t.id === task.id);
+      return exists ? prev.map(t => t.id === task.id ? task : t) : [...prev, task];
+    });
+    setFormState(null);
+  }
+  function deleteTask(id) {
+    setTasks(prev => prev.filter(t => t.id !== id));
+    setFormState(null);
+  }
+  function toggleComplete(id) {
+    setTasks(prev => prev.map(t => t.id === id
+      ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : null }
+      : t));
+    setFormState(null);
+  }
+
+  const editingTask = typeof formState === 'string' && formState !== 'create'
+    ? tasks.find(t => t.id === formState)
+    : null;
+
+  return (
+    <div className="app">
+      <div className="toolbar">
+        <div className="brand">
+          <span className="brand-dot" />
+          <div>
+            <h1>{s.appName}</h1>
+            <span>{s.tagline}</span>
+          </div>
+        </div>
+
+        <div className="toolbar-actions">
+          <div className="legend">
+            {PRIORITY_ORDER.map(key => (
+              <div className="legend-item" key={key}>
+                <span className="legend-swatch" style={{ background: PRIORITY[key].color }} />
+                {s.priority[key]}
+              </div>
+            ))}
+          </div>
+
+          <label className="toggle">
+            <input type="checkbox" checked={showCompleted} onChange={e => setShowCompleted(e.target.checked)} />
+            {s.showCompleted}
+          </label>
+
+          <button
+            className="lang-toggle"
+            onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')}
+            title={lang === 'ar' ? 'English' : 'العربية'}
+          >
+            {s.langToggle}
+          </button>
+
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+            title={theme === 'dark' ? s.themeToLight : s.themeToDark}
+          >
+            <ThemeIcon theme={theme} />
+          </button>
+
+          <button className="btn-secondary" onClick={() => setBatchOpen(true)}>{s.addBatch}</button>
+          <button className="btn-primary" onClick={() => setFormState('create')}>{s.addTask}</button>
+        </div>
+      </div>
+
+      <BubbleField tasks={visibleTasks} onSelect={setFormState} onPop={toggleComplete} lang={lang} />
+
+      {formState && (
+        <TaskFormModal
+          initial={editingTask}
+          onCancel={() => setFormState(null)}
+          onSave={upsertTask}
+          onDelete={deleteTask}
+          onToggleComplete={toggleComplete}
+          lang={lang}
+        />
+      )}
+
+      {batchOpen && (
+        <BatchTaskModal
+          onCancel={() => setBatchOpen(false)}
+          onSaveAll={(newTasks) => {
+            setTasks(prev => [...prev, ...newTasks]);
+            setBatchOpen(false);
+          }}
+          lang={lang}
+        />
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<script>
+  (function () {
+    var src = document.getElementById('app-source').textContent;
+    var out = Babel.transform(src, { presets: [['react', { runtime: 'classic' }]] });
+    (0, eval)(out.code);
+  })();
+</script>
+</body>
+</html>
