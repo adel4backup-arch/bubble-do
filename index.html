@@ -78,62 +78,90 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 14px 22px;
+    padding: 9px 20px;
     background: var(--panel);
     border-bottom: 1px solid var(--panel-border);
     backdrop-filter: blur(14px);
     z-index: 20;
     flex-wrap: wrap;
   }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-logo { width: 34px; height: 34px; flex-shrink: 0; filter: drop-shadow(0 2px 8px rgba(0,0,0,.35)); }
-  .brand h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: .3px; }
-  .brand span { font-size: 12px; color: var(--text-dim); display:block; margin-top:2px; }
+  .brand { display: flex; align-items: center; gap: 8px; }
+  .brand-logo { width: 26px; height: 26px; flex-shrink: 0; filter: drop-shadow(0 2px 8px rgba(0,0,0,.35)); }
+  .brand h1 { font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: .3px; }
+
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--panel-border);
+    border-radius: 10px; padding: 7px 14px; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text);
+  }
+  .back-btn:hover { border-color: var(--accent); }
+  .back-btn svg { width: 15px; height: 15px; }
+  html.light .back-icon-flip svg, [dir="rtl"] .back-btn svg { transform: scaleX(-1); }
+  .completed-view-title { font-size: 14px; font-weight: 800; color: var(--accent); }
+
+  .menu-toggle-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--panel-border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .menu-toggle-btn:hover { border-color: var(--accent); }
+  .menu-toggle-btn svg { width: 17px; height: 17px; }
 
   .toolbar-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 
   .sort-tabs {
     display: flex; align-items: center; gap: 6px;
-    padding: 8px 22px;
+    padding: 5px 20px;
     background: var(--panel);
     border-bottom: 1px solid var(--panel-border);
     backdrop-filter: blur(14px);
     z-index: 15;
     flex-wrap: wrap;
   }
+  .sort-mode-toggle {
+    display: flex; gap: 2px;
+    background: var(--surface); border: 1px solid var(--panel-border);
+    border-radius: 9px; padding: 2px;
+    margin-inline-end: 6px;
+  }
+  .mode-btn {
+    background: transparent; border: none; border-radius: 7px;
+    padding: 5px 11px; font-family: inherit; font-size: 11.5px; font-weight: 700;
+    color: var(--text-dim); cursor: pointer; white-space: nowrap;
+  }
+  .mode-btn.active { background: var(--accent); color: #fff; }
   .sort-tab {
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; gap: 5px;
     background: transparent; border: 1px solid transparent;
-    border-radius: 10px; padding: 7px 14px;
-    font-family: inherit; font-size: 13px; font-weight: 600;
+    border-radius: 9px; padding: 5px 11px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
     color: var(--text-dim); cursor: pointer;
     white-space: nowrap;
   }
-  .sort-tab svg { width: 15px; height: 15px; }
+  .sort-tab svg { width: 13px; height: 13px; }
   .sort-tab:hover { border-color: var(--panel-border); color: var(--text); }
   .sort-tab.active {
     background: var(--surface-focus); border-color: var(--accent); color: var(--accent);
   }
+  .sort-dir-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; font-size: 11px; font-weight: 900;
+    border-radius: 4px;
+  }
+  .sort-dir-toggle:hover { background: rgba(124,155,255,.2); }
   .sort-tab-badge {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 16px; height: 16px; border-radius: 50%;
+    width: 15px; height: 15px; border-radius: 50%;
     background: var(--accent); color: #fff;
-    font-size: 10px; font-weight: 800;
+    font-size: 9.5px; font-weight: 800;
   }
   .reset-tab { margin-inline-start: auto; }
-
-  .stats-toggle-btn {
-    display: flex; align-items: center; justify-content: center;
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    border: 1px solid var(--panel-border);
-    background: var(--surface);
-    color: var(--accent);
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .stats-toggle-btn:hover { border-color: var(--accent); }
-  .stats-toggle-btn svg { width: 18px; height: 18px; }
 
   .stats-drawer-overlay {
     position: fixed; inset: 0;
@@ -177,44 +205,26 @@
   .stats-card-count { font-size: 12.5px; color: var(--text-dim); }
   .stats-card-count b { color: var(--text); font-weight: 800; }
 
-  .toggle {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--text-dim); cursor: pointer;
-    user-select: none;
-    padding: 6px 10px; border-radius: 10px;
-    border: 1px solid transparent;
+  .menu-row-group { display: flex; gap: 10px; margin-bottom: 14px; }
+  .menu-row-btn {
+    flex: 1; display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--panel-border);
+    border-radius: 10px; padding: 10px 12px; cursor: pointer;
+    font-family: inherit; font-size: 13px; color: var(--text); font-weight: 600;
   }
-  .toggle:hover { border-color: var(--panel-border); color: var(--text); }
-  .toggle input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
-
-  .theme-toggle {
-    display: flex; align-items: center; justify-content: center;
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    border: 1px solid var(--panel-border);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: border-color .15s ease, background .15s ease;
+  .menu-row-btn:hover { border-color: var(--accent); }
+  .menu-row-value { color: var(--accent); font-weight: 800; display: flex; align-items: center; }
+  .menu-row-value svg { width: 16px; height: 16px; }
+  .menu-completed-btn {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    width: 100%; margin-bottom: 18px;
+    background: var(--surface-focus); border: 1px solid var(--accent);
+    border-radius: 10px; padding: 11px 14px; cursor: pointer;
+    font-family: inherit; font-size: 13.5px; font-weight: 700; color: var(--accent);
   }
-  .theme-toggle:hover { border-color: var(--accent); }
-  .theme-toggle svg { width: 18px; height: 18px; }
-
-  .lang-toggle {
-    display: flex; align-items: center; justify-content: center;
-    min-width: 44px; height: 38px;
-    padding: 0 12px;
-    border-radius: 10px;
-    border: 1px solid var(--panel-border);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    flex-shrink: 0;
-    font-family: inherit; font-size: 13px; font-weight: 700;
-    transition: border-color .15s ease, background .15s ease;
-  }
-  .lang-toggle:hover { border-color: var(--accent); }
+  .menu-completed-btn svg { width: 16px; height: 16px; }
+  .menu-completed-btn:hover { background: var(--surface-focus); filter: brightness(1.1); }
+  .menu-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--panel-border); }
 
   .btn-primary {
     display: flex; align-items: center; gap: 8px;
@@ -239,7 +249,6 @@
   .btn-secondary:hover { border-color: var(--accent); transform: translateY(-1px); }
   .btn-secondary:active { transform: translateY(0); }
 
-  .legend { display:flex; gap:14px; align-items:center; flex-wrap: wrap; }
   .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color: var(--text-dim); }
   .legend-swatch { width:11px; height:11px; border-radius:50%; display:inline-block; }
 
@@ -476,21 +485,20 @@
 
   /* ---------- Mobile ---------- */
   @media (max-width: 640px) {
-    .toolbar { padding: 10px 14px; gap: 8px; }
-    .brand h1 { font-size: 15px; }
-    .brand span { display: none; }
-    .brand-logo { width: 28px; height: 28px; }
-    .toolbar-actions { gap: 8px; }
-    .legend { display: none; }
-    .toggle { font-size: 11.5px; padding: 5px 8px; }
-    .lang-toggle, .theme-toggle, .stats-toggle-btn { width: 32px; height: 32px; }
-    .btn-secondary, .btn-primary { padding: 8px 12px; font-size: 12.5px; }
-    .sort-tabs { padding: 8px 14px; gap: 4px; }
-    .sort-tab { padding: 6px 10px; font-size: 11.5px; }
+    .toolbar { padding: 8px 12px; gap: 8px; }
+    .brand h1 { font-size: 14px; }
+    .brand-logo { width: 24px; height: 24px; }
+    .toolbar-actions { gap: 6px; }
+    .menu-toggle-btn { width: 30px; height: 30px; }
+    .btn-secondary, .btn-primary { padding: 7px 10px; font-size: 12px; }
+    .sort-tabs { padding: 4px 12px; gap: 3px; }
+    .sort-tab { padding: 4px 8px; font-size: 11px; }
+    .mode-btn { padding: 4px 8px; font-size: 10.5px; }
     .reset-tab { margin-inline-start: 0; }
     .modal { padding: 18px 16px; }
     .field-row { flex-direction: column; }
     .batch-modal { width: 94vw; }
+    .stats-drawer { width: 90vw; }
   }
 </style>
 </head>
@@ -526,7 +534,6 @@ const STRINGS = {
     appName: 'bubble-do',
     tagline: 'إدارة المهام بالفقاعات',
     priority: { normal: 'عادية', important: 'مهمة', veryImportant: 'مهمة أوي', urgent: 'إيرجنت' },
-    showCompleted: 'إظهار المهام المخلّصة',
     themeToLight: 'الوضع النهاري',
     themeToDark: 'الوضع الليلي',
     langToggle: 'EN',
@@ -538,7 +545,8 @@ const STRINGS = {
     axisFuture: '⬇ لسه بدري عليها',
     todayLabel: 'النهاردة',
     afterTodayLabel: 'اللي جاي بعد النهاردة',
-    sortByDate: 'التاريخ',
+    sortModeDay: 'داخل نفس اليوم',
+    sortModeGlobal: 'كل التاسكات',
     sortByDuration: 'المدة',
     sortByPriority: 'الأولوية',
     resetLayout: 'ريست الترتيب',
@@ -549,6 +557,13 @@ const STRINGS = {
     statsAllTime: 'من البداية',
     statsUnit: 'نقطة',
     statsTasksUnit: 'مهمة',
+    menuTitle: 'القائمة',
+    menuShowCompleted: 'عرض المهام المكتملة',
+    menuLanguage: 'اللغة',
+    menuTheme: 'المظهر',
+    completedViewTitle: 'المهام المكتملة',
+    backToTasks: 'رجوع للمهامي',
+    completedEmptyTitle: 'لسه مفيش مهام مكتملة',
     fieldName: 'اسم المهمة',
     fieldNamePlaceholder: 'مثلاً: تجهيز عرض العميل',
     fieldDescription: 'الوصف',
@@ -558,6 +573,14 @@ const STRINGS = {
     hoursLabel: 'ساعات',
     minutesLabel: 'دقايق',
     fieldPriority: 'الأولوية',
+    fieldRecurrence: 'التكرار',
+    recurrenceNone: 'بدون تكرار',
+    recurrenceDaily: 'يوميًا',
+    recurrenceWeekly: 'أسبوعيًا',
+    recurrenceMonthly: 'شهريًا',
+    recurrenceWeekdayLabel: 'يتكرر يوم',
+    recurrenceDayOfMonthLabel: 'يتكرر في تاريخ',
+    weekdays: ['الأحد', 'الإتنين', 'التلات', 'الأربع', 'الخميس', 'الجمعة', 'السبت'],
     formTitleCreate: 'مهمة جديدة',
     formTitleEdit: 'تعديل المهمة',
     btnCancel: 'إلغاء',
@@ -577,7 +600,6 @@ const STRINGS = {
     appName: 'bubble-do',
     tagline: 'Bubble-style task management',
     priority: { normal: 'Normal', important: 'Important', veryImportant: 'Very important', urgent: 'Urgent' },
-    showCompleted: 'Show completed tasks',
     themeToLight: 'Switch to light mode',
     themeToDark: 'Switch to dark mode',
     langToggle: 'ع',
@@ -589,7 +611,8 @@ const STRINGS = {
     axisFuture: '⬇ Still coming up',
     todayLabel: 'Today',
     afterTodayLabel: 'Coming up after today',
-    sortByDate: 'Date',
+    sortModeDay: 'Within same day',
+    sortModeGlobal: 'All tasks',
     sortByDuration: 'Duration',
     sortByPriority: 'Priority',
     resetLayout: 'Reset layout',
@@ -600,6 +623,13 @@ const STRINGS = {
     statsAllTime: 'All time',
     statsUnit: 'pts',
     statsTasksUnit: 'tasks',
+    menuTitle: 'Menu',
+    menuShowCompleted: 'View completed tasks',
+    menuLanguage: 'Language',
+    menuTheme: 'Theme',
+    completedViewTitle: 'Completed tasks',
+    backToTasks: 'Back to my tasks',
+    completedEmptyTitle: 'No completed tasks yet',
     fieldName: 'Task name',
     fieldNamePlaceholder: 'e.g. Prepare client presentation',
     fieldDescription: 'Description',
@@ -609,6 +639,14 @@ const STRINGS = {
     hoursLabel: 'Hours',
     minutesLabel: 'Minutes',
     fieldPriority: 'Priority',
+    fieldRecurrence: 'Repeat',
+    recurrenceNone: 'No repeat',
+    recurrenceDaily: 'Daily',
+    recurrenceWeekly: 'Weekly',
+    recurrenceMonthly: 'Monthly',
+    recurrenceWeekdayLabel: 'Repeats on',
+    recurrenceDayOfMonthLabel: 'Repeats on day',
+    weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     formTitleCreate: 'New task',
     formTitleEdit: 'Edit task',
     btnCancel: 'Cancel',
@@ -677,6 +715,38 @@ function dayKey(iso) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// Given a completed recurring task, work out the ISO due date of its next
+// occurrence (same time of day, advanced per the recurrence rule).
+function computeNextOccurrence(task) {
+  const rec = task.recurrence;
+  if (!rec || !rec.type) return null;
+  const current = new Date(task.dueDate);
+
+  if (rec.type === 'daily') {
+    const next = new Date(current);
+    next.setDate(next.getDate() + 1);
+    return next.toISOString();
+  }
+
+  if (rec.type === 'weekly') {
+    const targetDay = typeof rec.weekday === 'number' ? rec.weekday : current.getDay();
+    const next = new Date(current);
+    next.setDate(next.getDate() + 1);
+    while (next.getDay() !== targetDay) next.setDate(next.getDate() + 1);
+    return next.toISOString();
+  }
+
+  if (rec.type === 'monthly') {
+    const targetDay = rec.dayOfMonth || current.getDate();
+    const base = new Date(current.getFullYear(), current.getMonth() + 1, 1, current.getHours(), current.getMinutes(), current.getSeconds());
+    const daysInMonth = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+    base.setDate(Math.min(targetDay, daysInMonth));
+    return base.toISOString();
+  }
+
+  return null;
+}
+
 function formatDate(iso, lang) {
   try {
     return new Intl.DateTimeFormat(STRINGS[lang].dateLocale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
@@ -725,7 +795,7 @@ const POP_DURATION_MS = 380;
 
 const DRAG_THRESHOLD_PX = 6;
 
-function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, manualPositions, onManualMove }) {
+function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, sortMode, manualPositions, onManualMove, emptyTitle, emptyHint }) {
   const s = STRINGS[lang];
   const containerRef = useRef(null);
   const nodesRef = useRef([]);
@@ -840,53 +910,37 @@ function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, manualPositions, 
     };
   }, [tasks]);
 
-  // Pack same-day tasks side by side (filling the row before wrapping),
-  // oldest day's row on top, each following day's row below it.
+  // Pack tasks side by side (filling the row before wrapping). In 'byDay'
+  // mode rows are grouped by due date (oldest day's row on top); in 'global'
+  // mode the date is ignored and every task packs into one continuous,
+  // duration/priority-sorted flow.
   const { layoutById, contentHeight, todayY, tomorrowY } = useMemo(() => {
     const topPad = 90, bottomPad = 70, gap = 14, groupGap = 36;
     const width = Math.max(100, size.w);
     const rtl = STRINGS[lang].dir === 'rtl';
+    const positions = new Map();
 
-    const groups = new Map();
-    for (const t of tasks) {
-      const key = dayKey(t.dueDate);
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(t);
-    }
-    // Order tasks within each same-day group by the active criteria, in the
-    // exact precedence the user picked them in (first picked = primary key).
-    const compareByKey = (key, a, b) => {
-      if (key === 'duration') return a.estimatedHours - b.estimatedHours;
-      if (key === 'priority') return PRIORITY_ORDER.indexOf(b.priority) - PRIORITY_ORDER.indexOf(a.priority);
-      return new Date(a.dueDate) - new Date(b.dueDate);
+    // Order by the active criteria, in the exact precedence the user picked
+    // them in (first picked = primary key), each with its own asc/desc.
+    const compareByKey = (entry, a, b) => {
+      let c;
+      if (entry.key === 'duration') c = a.estimatedHours - b.estimatedHours;
+      else c = PRIORITY_ORDER.indexOf(a.priority) - PRIORITY_ORDER.indexOf(b.priority);
+      return entry.dir === 'desc' ? -c : c;
     };
-    const withinGroupCompare = (a, b) => {
-      for (const key of sortKeys) {
-        const c = compareByKey(key, a, b);
+    const fullCompare = (a, b) => {
+      for (const entry of sortKeys) {
+        const c = compareByKey(entry, a, b);
         if (c !== 0) return c;
       }
-      return 0;
+      return new Date(a.dueDate) - new Date(b.dueDate);
     };
-    for (const list of groups.values()) list.sort(withinGroupCompare);
-    const sortedKeys = Array.from(groups.keys()).sort();
-    const todayK = dayKey(new Date().toISOString());
-    const tomorrowK = dayKey(new Date(Date.now() + 86400000).toISOString());
 
-    const positions = new Map();
-    let cursorY = topPad;
-    let todayLineY = null;
-    let tomorrowLineY = null;
-
-    for (const key of sortedKeys) {
-      if (todayLineY === null && key >= todayK) {
-        todayLineY = cursorY - groupGap / 2;
-      }
-      if (tomorrowLineY === null && key >= tomorrowK) {
-        tomorrowLineY = cursorY - groupGap / 2;
-      }
+    function packRow(list, startY) {
+      let cursorY = startY;
       let cursorX = rtl ? width : 0;
       let rowMaxDiameter = 0;
-      for (const t of groups.get(key)) {
+      for (const t of list) {
         const r = radiusScale(t.estimatedHours);
         const d = r * 2;
         if (rtl) {
@@ -908,10 +962,36 @@ function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, manualPositions, 
         }
         rowMaxDiameter = Math.max(rowMaxDiameter, d);
       }
-      cursorY += rowMaxDiameter + groupGap;
+      return cursorY + rowMaxDiameter;
     }
-    if (todayLineY === null) todayLineY = cursorY - groupGap / 2;
-    if (tomorrowLineY === null) tomorrowLineY = cursorY - groupGap / 2;
+
+    let cursorY = topPad;
+    let todayLineY = null;
+    let tomorrowLineY = null;
+
+    if (sortMode === 'global') {
+      const sorted = [...tasks].sort(fullCompare);
+      cursorY = packRow(sorted, cursorY) + bottomPad;
+    } else {
+      const groups = new Map();
+      for (const t of tasks) {
+        const key = dayKey(t.dueDate);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(t);
+      }
+      for (const list of groups.values()) list.sort(fullCompare);
+      const sortedKeys = Array.from(groups.keys()).sort();
+      const todayK = dayKey(new Date().toISOString());
+      const tomorrowK = dayKey(new Date(Date.now() + 86400000).toISOString());
+
+      for (const key of sortedKeys) {
+        if (todayLineY === null && key >= todayK) todayLineY = cursorY - groupGap / 2;
+        if (tomorrowLineY === null && key >= tomorrowK) tomorrowLineY = cursorY - groupGap / 2;
+        cursorY = packRow(groups.get(key), cursorY) + groupGap;
+      }
+      if (todayLineY === null) todayLineY = cursorY - groupGap / 2;
+      if (tomorrowLineY === null) tomorrowLineY = cursorY - groupGap / 2;
+    }
 
     // Manual drag overrides win over the automatic packed position, but keep
     // riding on the same radius so sizing stays consistent with duration.
@@ -925,10 +1005,10 @@ function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, manualPositions, 
     return {
       layoutById: positions,
       contentHeight: Math.max(size.h, cursorY + bottomPad),
-      todayY: todayLineY,
-      tomorrowY: tomorrowLineY,
+      todayY: sortMode === 'global' ? null : todayLineY,
+      tomorrowY: sortMode === 'global' ? null : tomorrowLineY,
     };
-  }, [tasks, size.w, size.h, radiusScale, lang, sortKeys, manualPositions]);
+  }, [tasks, size.w, size.h, radiusScale, lang, sortKeys, sortMode, manualPositions]);
 
   // (re)build simulation whenever the task list, layout, or canvas size changes
   useEffect(() => {
@@ -1011,18 +1091,18 @@ function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, manualPositions, 
     <div className="field-wrap" ref={containerRef}>
       {tasks.length === 0 && (
         <div className="empty-state">
-          <b>{s.emptyTitle}</b>
-          <span>{s.emptyHint}</span>
+          <b>{emptyTitle ?? s.emptyTitle}</b>
+          <span>{emptyHint ?? s.emptyHint}</span>
         </div>
       )}
-      <div className="axis-hint-top"><span>{s.axisOverdue}</span></div>
+      {sortMode !== 'global' && <div className="axis-hint-top"><span>{s.axisOverdue}</span></div>}
       <div className="bubble-canvas" style={{ height: contentHeight }}>
-        {tasks.length > 0 && (
+        {tasks.length > 0 && todayY !== null && (
           <div className="today-line" style={{ top: todayY }}>
             <span className="today-line-label">{s.todayLabel}</span>
           </div>
         )}
-        {tasks.length > 0 && (
+        {tasks.length > 0 && tomorrowY !== null && (
           <div className="today-line tomorrow-line" style={{ top: tomorrowY }}>
             <span className="today-line-label tomorrow-line-label">{s.afterTodayLabel}</span>
           </div>
@@ -1066,7 +1146,7 @@ function BubbleField({ tasks, onSelect, onPop, lang, sortKeys, manualPositions, 
           );
         })}
       </div>
-      <div className="axis-hint-bottom"><span>{s.axisFuture}</span></div>
+      {sortMode !== 'global' && <div className="axis-hint-bottom"><span>{s.axisFuture}</span></div>}
     </div>
   );
 }
@@ -1082,6 +1162,13 @@ function TaskFormModal({ initial, onCancel, onSave, onDelete, onToggleComplete, 
   const [durationHours, setDurationHours] = useState(initialHM.h);
   const [durationMinutes, setDurationMinutes] = useState(initialHM.m);
   const [priority, setPriority] = useState(initial?.priority || 'normal');
+  const [recurrenceType, setRecurrenceType] = useState(initial?.recurrence?.type || 'none');
+  const [recurrenceWeekday, setRecurrenceWeekday] = useState(
+    initial?.recurrence?.weekday ?? new Date(initial?.dueDate || Date.now()).getDay()
+  );
+  const [recurrenceDayOfMonth, setRecurrenceDayOfMonth] = useState(
+    initial?.recurrence?.dayOfMonth ?? new Date(initial?.dueDate || Date.now()).getDate()
+  );
   const titleRef = useRef(null);
 
   useEffect(() => { titleRef.current?.focus(); }, []);
@@ -1100,6 +1187,10 @@ function TaskFormModal({ initial, onCancel, onSave, onDelete, onToggleComplete, 
     e.preventDefault();
     if (!title.trim() || !dueDate) return;
     const totalHours = hmToHours(durationHours, durationMinutes);
+    let recurrence = null;
+    if (recurrenceType === 'daily') recurrence = { type: 'daily' };
+    else if (recurrenceType === 'weekly') recurrence = { type: 'weekly', weekday: Number(recurrenceWeekday) };
+    else if (recurrenceType === 'monthly') recurrence = { type: 'monthly', dayOfMonth: Number(recurrenceDayOfMonth) };
     onSave({
       id: initial?.id || uid(),
       title: title.trim(),
@@ -1107,6 +1198,7 @@ function TaskFormModal({ initial, onCancel, onSave, onDelete, onToggleComplete, 
       dueDate: new Date(dueDate).toISOString(),
       estimatedHours: Math.max(1 / 60, totalHours),
       priority,
+      recurrence,
       completed: initial?.completed || false,
       completedAt: initial?.completedAt || null,
     });
@@ -1161,6 +1253,43 @@ function TaskFormModal({ initial, onCancel, onSave, onDelete, onToggleComplete, 
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="field">
+          <label>{s.fieldRecurrence}</label>
+          <div className="priority-picker">
+            {['none', 'daily', 'weekly', 'monthly'].map(key => (
+              <div
+                key={key}
+                className={'priority-opt' + (recurrenceType === key ? ' active' : '')}
+                style={recurrenceType === key ? { background: 'var(--accent)' } : {}}
+                onClick={() => setRecurrenceType(key)}
+              >
+                {key === 'none' ? s.recurrenceNone : key === 'daily' ? s.recurrenceDaily : key === 'weekly' ? s.recurrenceWeekly : s.recurrenceMonthly}
+              </div>
+            ))}
+          </div>
+          {recurrenceType === 'weekly' && (
+            <div className="field-row" style={{ marginTop: 10 }}>
+              <div className="field">
+                <label>{s.recurrenceWeekdayLabel}</label>
+                <select value={recurrenceWeekday} onChange={e => setRecurrenceWeekday(Number(e.target.value))}>
+                  {s.weekdays.map((name, i) => <option key={i} value={i}>{name}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+          {recurrenceType === 'monthly' && (
+            <div className="field-row" style={{ marginTop: 10 }}>
+              <div className="field">
+                <label>{s.recurrenceDayOfMonthLabel}</label>
+                <input
+                  type="number" min="1" max="31" value={recurrenceDayOfMonth}
+                  onChange={e => setRecurrenceDayOfMonth(Math.min(31, Math.max(1, Number(e.target.value) || 1)))}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="modal-actions">
@@ -1358,15 +1487,6 @@ function ThemeIcon({ theme }) {
   );
 }
 
-function CalendarIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
-  );
-}
-
 function ClockIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1403,7 +1523,23 @@ function TrophyIcon() {
   );
 }
 
-function StatsDrawer({ stats, lang, onClose }) {
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+function MenuDrawer({ stats, lang, theme, onClose, onToggleTheme, onToggleLang, onShowCompleted }) {
   const s = STRINGS[lang];
   const rows = [
     [s.statsToday, stats.today],
@@ -1415,9 +1551,35 @@ function StatsDrawer({ stats, lang, onClose }) {
     <div className="stats-drawer-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="stats-drawer">
         <div className="stats-drawer-header">
-          <div className="stats-drawer-title"><TrophyIcon />{s.statsTitle}</div>
+          <div className="stats-drawer-title"><MenuIcon />{s.menuTitle}</div>
           <button className="stats-drawer-close" onClick={onClose}>×</button>
         </div>
+
+        <div className="menu-row-group">
+          <button className="menu-row-btn" onClick={onToggleLang}>
+            <span>{s.menuLanguage}</span>
+            <span className="menu-row-value">{s.langToggle}</span>
+          </button>
+          <button className="menu-row-btn" onClick={onToggleTheme}>
+            <span>{s.menuTheme}</span>
+            <span className="menu-row-value"><ThemeIcon theme={theme} /></span>
+          </button>
+        </div>
+
+        <button className="menu-completed-btn" onClick={onShowCompleted}>
+          <TrophyIcon />{s.menuShowCompleted}
+        </button>
+
+        <div className="menu-legend">
+          {PRIORITY_ORDER.map(key => (
+            <div className="legend-item" key={key}>
+              <span className="legend-swatch" style={{ background: PRIORITY[key].color }} />
+              {s.priority[key]}
+            </div>
+          ))}
+        </div>
+
+        <div className="stats-drawer-title" style={{ marginTop: 6 }}><TrophyIcon />{s.statsTitle}</div>
         {rows.map(([label, entry]) => (
           <div className="stats-card" key={label}>
             <div className="stats-card-label">{label}</div>
@@ -1436,25 +1598,25 @@ function StatsDrawer({ stats, lang, onClose }) {
 
 function App() {
   const [tasks, setTasks] = useState(loadTasks);
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [viewMode, setViewMode] = useState('active'); // 'active' | 'completed'
   const [formState, setFormState] = useState(null); // null | 'create' | taskId
   const [batchOpen, setBatchOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'dark');
   const [lang, setLang] = useState(() => localStorage.getItem(LANG_KEY) || 'ar');
-  const [sortKeys, setSortKeys] = useState(['date']); // order = precedence, e.g. ['date','duration']
+  const [sortKeys, setSortKeys] = useState([]); // [{key:'duration'|'priority', dir:'asc'|'desc'}, ...] — order = precedence
+  const [sortMode, setSortMode] = useState('byDay'); // 'byDay' | 'global'
   const [manualPositions, setManualPositions] = useState(loadManualPositions);
   const [completions, setCompletions] = useState(loadCompletions);
-  const [statsOpen, setStatsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function toggleSortKey(key) {
     setSortKeys(prev => {
-      if (prev.includes(key)) {
-        // Never let the chain go empty — keep at least one active criterion.
-        if (prev.length === 1) return prev;
-        return prev.filter(k => k !== key);
-      }
-      return [...prev, key];
+      if (prev.some(s => s.key === key)) return prev.filter(s => s.key !== key);
+      return [...prev, { key, dir: key === 'priority' ? 'desc' : 'asc' }];
     });
+  }
+  function toggleSortDir(key) {
+    setSortKeys(prev => prev.map(s => s.key === key ? { ...s, dir: s.dir === 'asc' ? 'desc' : 'asc' } : s));
   }
 
   function handleManualMove(id, pos) {
@@ -1482,8 +1644,8 @@ function App() {
   }, [lang]);
 
   const visibleTasks = useMemo(
-    () => showCompleted ? tasks : tasks.filter(t => !t.completed),
-    [tasks, showCompleted]
+    () => tasks.filter(t => viewMode === 'completed' ? t.completed : !t.completed),
+    [tasks, viewMode]
   );
 
   function upsertTask(task) {
@@ -1501,9 +1663,18 @@ function App() {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
     const nowCompleted = !task.completed;
-    setTasks(prev => prev.map(t => t.id === id
-      ? { ...t, completed: nowCompleted, completedAt: nowCompleted ? new Date().toISOString() : null }
-      : t));
+    setTasks(prev => {
+      let next = prev.map(t => t.id === id
+        ? { ...t, completed: nowCompleted, completedAt: nowCompleted ? new Date().toISOString() : null }
+        : t);
+      if (nowCompleted && task.recurrence) {
+        const nextDue = computeNextOccurrence(task);
+        if (nextDue) {
+          next = [...next, { ...task, id: uid(), dueDate: nextDue, completed: false, completedAt: null }];
+        }
+      }
+      return next;
+    });
     setCompletions(prev => {
       const withoutThis = prev.filter(c => c.taskId !== id);
       if (!nowCompleted) return withoutThis;
@@ -1541,77 +1712,61 @@ function App() {
   return (
     <div className="app">
       <div className="toolbar">
-        <div className="brand">
-          <BubbleLogo className="brand-logo" />
-          <div>
-            <h1>{s.appName}</h1>
-            <span>{s.tagline}</span>
-          </div>
-        </div>
-
-        <div className="toolbar-actions">
-          <div className="legend">
-            {PRIORITY_ORDER.map(key => (
-              <div className="legend-item" key={key}>
-                <span className="legend-swatch" style={{ background: PRIORITY[key].color }} />
-                {s.priority[key]}
-              </div>
-            ))}
-          </div>
-
-          <label className="toggle">
-            <input type="checkbox" checked={showCompleted} onChange={e => setShowCompleted(e.target.checked)} />
-            {s.showCompleted}
-          </label>
-
-          <button
-            className="lang-toggle"
-            onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')}
-            title={lang === 'ar' ? 'English' : 'العربية'}
-          >
-            {s.langToggle}
-          </button>
-
-          <button
-            className="theme-toggle"
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            title={theme === 'dark' ? s.themeToLight : s.themeToDark}
-          >
-            <ThemeIcon theme={theme} />
-          </button>
-
-          <button className="stats-toggle-btn" onClick={() => setStatsOpen(true)} title={s.statsTitle}>
-            <TrophyIcon />
-          </button>
-
-          <button className="btn-secondary" onClick={() => setBatchOpen(true)}>{s.addBatch}</button>
-          <button className="btn-primary" onClick={() => setFormState('create')}>{s.addTask}</button>
-        </div>
+        {viewMode === 'completed' ? (
+          <>
+            <button className="back-btn" onClick={() => setViewMode('active')}>
+              <BackIcon />{s.backToTasks}
+            </button>
+            <div className="completed-view-title">{s.completedViewTitle}</div>
+          </>
+        ) : (
+          <>
+            <div className="brand">
+              <BubbleLogo className="brand-logo" />
+              <h1>{s.appName}</h1>
+            </div>
+            <div className="toolbar-actions">
+              <button className="menu-toggle-btn" onClick={() => setMenuOpen(true)} title={s.menuTitle}>
+                <MenuIcon />
+              </button>
+              <button className="btn-secondary" onClick={() => setBatchOpen(true)}>{s.addBatch}</button>
+              <button className="btn-primary" onClick={() => setFormState('create')}>{s.addTask}</button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="sort-tabs">
+        <div className="sort-mode-toggle">
+          <button className={'mode-btn' + (sortMode === 'byDay' ? ' active' : '')} onClick={() => setSortMode('byDay')}>{s.sortModeDay}</button>
+          <button className={'mode-btn' + (sortMode === 'global' ? ' active' : '')} onClick={() => setSortMode('global')}>{s.sortModeGlobal}</button>
+        </div>
         {[
-          ['date', s.sortByDate, <CalendarIcon key="i" />],
           ['duration', s.sortByDuration, <ClockIcon key="i" />],
           ['priority', s.sortByPriority, <FlagIcon key="i" />],
         ].map(([key, label, icon]) => {
-          const order = sortKeys.indexOf(key);
+          const idx = sortKeys.findIndex(sk => sk.key === key);
+          const entry = idx !== -1 ? sortKeys[idx] : null;
           return (
             <button
               key={key}
-              className={'sort-tab' + (order !== -1 ? ' active' : '')}
+              className={'sort-tab' + (entry ? ' active' : '')}
               onClick={() => toggleSortKey(key)}
             >
               {icon}{label}
-              {order !== -1 && sortKeys.length > 1 && <span className="sort-tab-badge">{order + 1}</span>}
+              {entry && (
+                <span className="sort-dir-toggle" onClick={(e) => { e.stopPropagation(); toggleSortDir(key); }}>
+                  {entry.dir === 'asc' ? '↑' : '↓'}
+                </span>
+              )}
+              {entry && sortKeys.length > 1 && <span className="sort-tab-badge">{idx + 1}</span>}
             </button>
           );
         })}
         <button className="sort-tab reset-tab" onClick={resetLayout} title={s.resetLayout}>
-          <ResetIcon />{s.resetLayout}
+          <ResetIcon />
         </button>
       </div>
-
 
       <BubbleField
         tasks={visibleTasks}
@@ -1619,8 +1774,11 @@ function App() {
         onPop={toggleComplete}
         lang={lang}
         sortKeys={sortKeys}
+        sortMode={sortMode}
         manualPositions={manualPositions}
         onManualMove={handleManualMove}
+        emptyTitle={viewMode === 'completed' ? s.completedEmptyTitle : undefined}
+        emptyHint={viewMode === 'completed' ? '' : undefined}
       />
 
       {formState && (
@@ -1645,8 +1803,16 @@ function App() {
         />
       )}
 
-      {statsOpen && (
-        <StatsDrawer stats={stats} lang={lang} onClose={() => setStatsOpen(false)} />
+      {menuOpen && (
+        <MenuDrawer
+          stats={stats}
+          lang={lang}
+          theme={theme}
+          onClose={() => setMenuOpen(false)}
+          onToggleLang={() => setLang(l => l === 'ar' ? 'en' : 'ar')}
+          onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          onShowCompleted={() => { setViewMode('completed'); setMenuOpen(false); }}
+        />
       )}
     </div>
   );
