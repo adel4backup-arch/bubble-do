@@ -156,20 +156,24 @@
   const meridiemEl = document.getElementById('meridiem-line');
   const batteryEl = document.getElementById('battery-line');
 
-  const dateFmt = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const TIME_ZONE = 'Africa/Cairo'; // pinned so the clock is always correct regardless of device time-zone settings
+
+  const dateFmt = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: TIME_ZONE });
+  const partsFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const pad = n => String(n).padStart(2, '0');
 
   function render() {
     const now = new Date();
     dateEl.textContent = dateFmt.format(now);
 
-    let h = now.getHours();
+    const parts = Object.fromEntries(partsFmt.formatToParts(now).map(p => [p.type, p.value]));
+    const h = Number(parts.hour);
     const meridiem = h >= 12 ? 'م' : 'ص';
     let h12 = h % 12;
     if (h12 === 0) h12 = 12;
 
-    timeEl.innerHTML = `${pad(h12)}<span class="colon">:</span>${pad(now.getMinutes())}`;
-    secEl.textContent = pad(now.getSeconds());
+    timeEl.innerHTML = `${pad(h12)}<span class="colon">:</span>${parts.minute}`;
+    secEl.textContent = parts.second;
     meridiemEl.textContent = meridiem;
   }
 
