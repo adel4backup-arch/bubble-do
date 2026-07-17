@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#05070f" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>الساعة الديجيتال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #05070f;
+    font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+  }
+  body {
+    /* fills the full phone screen edge-to-edge, notch-safe */
+    height: 100dvh;
+    width: 100dvw;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(124,155,255,0.14), transparent 45%),
+      radial-gradient(circle at 75% 80%, rgba(255,100,150,0.10), transparent 50%),
+      linear-gradient(160deg, #05070f, #0a0e1f 55%, #060812 100%);
+    color: #eef1fb;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  #screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 3vh, 26px);
+    position: relative;
+  }
+
+  .date-line {
+    font-size: clamp(14px, 4.2vw, 22px);
+    font-weight: 500;
+    letter-spacing: .5px;
+    color: #9aa3c7;
+    text-align: center;
+  }
+
+  .clock-wrap {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .time {
+    font-size: clamp(64px, 20vw, 160px);
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(160deg, #ffffff, #a9b8ff 65%, #7c9bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 60px rgba(124,155,255,0.35);
+    display: flex;
+    align-items: baseline;
+  }
+  .time .colon {
+    animation: blink 1s steps(1) infinite;
+    margin: 0 2px;
+  }
+  @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .25; } }
+
+  .seconds {
+    font-size: clamp(20px, 6vw, 42px);
+    font-weight: 700;
+    color: #7c9bff;
+    font-variant-numeric: tabular-nums;
+    align-self: flex-end;
+    padding-inline-start: clamp(6px, 1.5vw, 14px);
+    padding-bottom: clamp(6px, 2vw, 18px);
+    min-width: 2.2ch;
+  }
+
+  .meridiem {
+    font-size: clamp(16px, 5vw, 30px);
+    font-weight: 700;
+    color: #facc15;
+    background: rgba(250, 204, 21, 0.08);
+    border: 1px solid rgba(250, 204, 21, 0.35);
+    border-radius: 999px;
+    padding: 6px 18px;
+    letter-spacing: 1px;
+  }
+
+  .battery-line {
+    position: absolute;
+    bottom: clamp(14px, 4vh, 36px);
+    font-size: clamp(11px, 3vw, 15px);
+    color: #5b6485;
+    letter-spacing: .5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #fullscreen-btn {
+    position: absolute;
+    top: clamp(14px, 3vh, 26px);
+    inset-inline-end: clamp(14px, 4vw, 26px);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #9aa3c7;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: clamp(11px, 3vw, 14px);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #fullscreen-btn:active { background: rgba(255,255,255,0.12); }
+
+  /* Oppo A98 (and similar 20:9 tall phones, ~1080x2400) tuning */
+  @media (max-width: 480px) and (min-aspect-ratio: 9/18) {
+    .clock-wrap { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()">ملء الشاشة</button>
+  <div id="screen">
+    <div class="date-line" id="date-line"></div>
+    <div class="clock-wrap">
+      <div class="time" id="time-line"></div>
+      <div class="seconds" id="sec-line"></div>
+      <div class="meridiem" id="meridiem-line"></div>
+    </div>
+    <div class="battery-line" id="battery-line"></div>
+  </div>
+
+<script>
+  const dateEl = document.getElementById('date-line');
+  const timeEl = document.getElementById('time-line');
+  const secEl = document.getElementById('sec-line');
+  const meridiemEl = document.getElementById('meridiem-line');
+  const batteryEl = document.getElementById('battery-line');
+
+  const dateFmt = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const pad = n => String(n).padStart(2, '0');
+
+  function render() {
+    const now = new Date();
+    dateEl.textContent = dateFmt.format(now);
+
+    let h = now.getHours();
+    const meridiem = h >= 12 ? 'م' : 'ص';
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+
+    timeEl.innerHTML = `${pad(h12)}<span class="colon">:</span>${pad(now.getMinutes())}`;
+    secEl.textContent = pad(now.getSeconds());
+    meridiemEl.textContent = meridiem;
+  }
+
+  render();
+  setInterval(render, 1000);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+    } else {
+      document.exitFullscreen?.();
+    }
+  }
+
+  if (navigator.getBattery) {
+    navigator.getBattery().then(battery => {
+      function updateBattery() {
+        const pct = Math.round(battery.level * 100);
+        batteryEl.textContent = `🔋 ${pct}%${battery.charging ? ' ⚡' : ''}`;
+      }
+      updateBattery();
+      battery.addEventListener('levelchange', updateBattery);
+      battery.addEventListener('chargingchange', updateBattery);
+    }).catch(() => { batteryEl.remove(); });
+  } else {
+    batteryEl.remove();
+  }
+
+  // keep screen awake while the clock is the active tab, when supported
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try {
+      wakeLock = await navigator.wakeLock?.request('screen');
+    } catch (e) { /* not supported / denied, ignore */ }
+  }
+  requestWakeLock();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') requestWakeLock();
+  });
+</script>
+</body>
+</html>
